@@ -34,7 +34,7 @@ executa_comando_lt:
     erro_comando_lt:
     # Imprimir na tela mensagem de erro
     la		$t0, error_msg_lt 
-    move    $a0, $t0        # $a0 = $t0
+    move    $a0, $t0        # $a0 = $t0 (Endereço da mensgem de erro)
     jal     imprime_string    
 
     fim_comando_lt:
