@@ -1,5 +1,5 @@
 .data:
-buffer_ld: .space 1024
+buffer_ld: .space 100
 error_msg_ld: .asciiz "Erro ao executar comando LD\n"
 .text:
 ##############
@@ -27,7 +27,7 @@ executa_comando_ld:
     move    $s1, $v0            # Salvamos o file descriptor em $s1
     move    $a0, $s1            # $a0 = File descriptor
     la      $a1, buffer_ld         # Carrega o buffer de caracteres
-    addi    $a2, $zero, 1024    # Maximo de caracteres a serem lidos
+    addi    $a2, $zero, 100    # Maximo de caracteres a serem lidos
     jal     read_file           # Chamar funcao para ler aquivo
     j       fim_comando_ld
 
