@@ -65,7 +65,8 @@ identifica_comando_e_chama_procedimento:
         jal     executa_comando_lt
         j		fim_identifica
     comando_eh_ld:
-
+        move    $a0, $s0        # $a0 = $s0
+        jal     executa_comando_ld
         j		fim_identifica
     comando_eh_r:
 
@@ -96,3 +97,4 @@ identifica_comando_e_chama_procedimento:
 .include "keyboard_display.s"
 .include "utils.s"
 .include "comandos/executa_lt.s"
+.include "comandos/executa_ld.s"
