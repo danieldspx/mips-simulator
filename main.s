@@ -95,6 +95,7 @@ identifica_comando_e_chama_procedimento:
 
 
 .include "keyboard_display.s"
+.include "utils_baratto.s"
 .include "utils.s"
 .include "comandos/executa_lt.s"
 .include "comandos/executa_ld.s"
