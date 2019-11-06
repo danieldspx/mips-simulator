@@ -27,7 +27,7 @@ pegar_argumento:
     ble		$t1, $s1, qtd_caracteres_a_pular_eh_maior_que_string	# if $t1 <= $s1 then fim_pega_argumento
 
     add	    $s0, $s0, $s1	# $s0 = $s0 + $s1 (&vetorDeCaracteres[0] + caracteres_a_pular)
-    move 	$v0, $s0		# $v0 = $t1
+    move 	$v0, $s0		# $v0 = $s0
     j       fim_pega_argumento
 
     qtd_caracteres_a_pular_eh_maior_que_string:
@@ -48,8 +48,8 @@ pegar_argumento:
 # Retorno:
 # $v0 = quantidade de caracteres
 quantidade_de_caracteres:
-    la $t0, 0($a0) # $t0 = Posicao inicial do vetor de caracteres
-    li $v0, 0 # $t4 = contador de caracteres
+    la      $t0, 0($a0) # $t0 = Posicao inicial do vetor de caracteres
+    li      $v0, 0 # $t4 = contador de caracteres
     laco_contador:
         lb      $t1, 0($t0) # Pega a letra e joga em $t1
         li      $t2, '\0' # $t2 = '\0' caractere final
@@ -60,4 +60,34 @@ quantidade_de_caracteres:
     fim_contador:
     jr $ra
 ##### FIM quantidade_de_caracteres #####
-        
+
+
+##############
+# Argumentos:
+# $a0 = &nomedoarquivo[0]
+# Retorno:
+# $v0 = descritor do arquivo /se $v0 = 0 -> end_of_file/ se $v0 < 0 -> deu erro
+open_file:
+    # $a0 = posicao inicial do vetor do nome do arquivo
+    # Abrir para a leitura
+    li      $v0, 13       # system call para abrir arquivo
+    li      $a1, 0        # Abrir para a leitura (flags sao 0: ler, 1: escrever)
+    li      $a2, 0        # mode eh ignorado
+    syscall               # abrir o arquivo (file descriptor retornado em $v0)
+    jr      $ra    
+##### FIM open_file #####
+
+
+##############
+# Argumentos:
+# $a0 = file descriptor
+# $a1 = endereco do buffer
+# $a2 = maximo numero de caracteres a ler
+# Retorno:
+# $v0 = contem o numero de caracteres lidos 
+# (0 se end-of-file, negativo if error).
+read_file:
+    li      $v0, 14        # $v0 = 14  
+    syscall                # chamada ao sistema para ler o arquivo
+    jr      $ra
+##### FIM read_file #####
