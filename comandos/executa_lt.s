@@ -28,7 +28,7 @@ executa_comando_lt:
     move    $a0, $s1            # $a0 = File descriptor
     la      $a1, buffer         # Carrega o buffer de caracteres
     addi    $a2, $zero, 1024    # Maximo de caracteres a serem lidos
-    jal     read_file
+    jal     read_file           # Chamar funcao para ler aquivo
     j       fim_comando_lt
 
     erro_comando_lt:
