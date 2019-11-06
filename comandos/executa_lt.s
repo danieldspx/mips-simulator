@@ -1,6 +1,6 @@
 .data:
 buffer: .space 1024
-file_loc: .asciiz "text.bin"
+error_msg_lt: .asciiz "Erro ao executar comando LT\n"
 .text:
 ##############
 # Argumentos:
@@ -18,19 +18,24 @@ executa_comando_lt:
     move 	$s0, $v0		        # $s0 <- Endereco para a primeira posicao onde comeca o argumento
     beqz    $v1, fim_comando_lt     # Se $v1 == 0 Significa que nao foi possivel pegar o argumento
 
-    #Imprimir na tela so pra teste mesmo
-    #move    $a0, $s0        # $a0 = $s0
-    #jal     imprime_string
-
-    #move    $a0, $s0
-    la		$a0, file_loc	    # 
+    move    $a0, $s0
     jal		open_file           # jump to read_file and save position to $ra
+
+    # Se o arquivo não foi aberto corretamente, throw error 
+    blt		$v0, $zero, erro_comando_lt	# if $v0 < $t1 then erro_comando_lt
 
     move    $s1, $v0            # Salvamos o file descriptor em $s1
     move    $a0, $s1            # $a0 = File descriptor
     la      $a1, buffer         # Carrega o buffer de caracteres
     addi    $a2, $zero, 1024    # Maximo de caracteres a serem lidos
     jal     read_file
+    j       fim_comando_lt
+
+    erro_comando_lt:
+    #Imprimir na tela mensagem de erro
+    la		$t0, error_msg_lt 
+    move    $a0, $t0        # $a0 = $t0
+    jal     imprime_string    
 
     fim_comando_lt:
     lw      $ra, 0($sp)

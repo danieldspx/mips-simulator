@@ -7,6 +7,7 @@
 # registradores de uso geral 
 
 buffer_linha: .space 256       # linhas com até 256 caracteres
+error_command_not_found: .asciiz "Comando nao encontrado\n"
 
 
 .text
@@ -45,7 +46,7 @@ identifica_comando_e_chama_procedimento:
     li		$t0, 'l'		# $t0 = 'l'
     beq		$t0, $t1, caractere_eh_l	# if $t0 == $t1 then caractere_eh_l
 
-    j		fim_identifica
+    j		comando_nao_encontrado
 
     caractere_eh_l:
         addi	$s1, $s1, 1		# $s1 =$s1 + 1
@@ -57,7 +58,7 @@ identifica_comando_e_chama_procedimento:
         li		$t0, 'd'		# $t0 = 'd'
         beq		$t0, $t1, comando_eh_ld	# if $t0 == $t1 then comando_eh_ld
 
-        j		fim_identifica
+        j		comando_nao_encontrado
 
     comando_eh_lt:
         move    $a0, $s0        # $a0 = $s0
@@ -75,6 +76,12 @@ identifica_comando_e_chama_procedimento:
     comando_eh_m:
 
         j		fim_identifica
+
+    comando_nao_encontrado:
+        la		$t0, error_command_not_found 
+        move    $a0, $t0        # $a0 = $t0
+        jal     imprime_string
+        j       fim_identifica
 
     fim_identifica:
     lw		$s0, 0($sp) 
