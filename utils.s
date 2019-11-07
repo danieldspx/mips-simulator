@@ -97,7 +97,7 @@ read_file:
 # Argumentos:
 # $a0 = &buffer[0]
 # $a1 = &memoria[0]
-# $a2 = Quantidade de bytes a serem inseridos
+# $a2 = Quantidade de 4-bytes a serem inseridos 
 write_on_text_memory:
     addiu   $sp, $sp, -24
     sw      $s0, 0($sp)
@@ -114,17 +114,24 @@ write_on_text_memory:
     li      $s3, 0          # Contador para saber qual byte estamos escrevendo na memoria
 
     inicio_laco:
-        bgt		$s3, $s2, fim_laco	# if contador > bytes_a_serem_inseridos then fim_laco
+        sll     $t0, $s2, 2         # $t0 = (bytes_a_serem_inseridos)*4
+        bgt		$s3, $t0, fim_laco	# if contador > bytes_a_serem_inseridos then fim_laco (CONTADOR SEMPRE SERA MULTIPLO DE 4)
         
-        sll     $s4, $s3, 2         # $s4 = contador*4
-        add     $t1, $s0, $s4       # $t1 = &buffer[0] + contador*4  === &buffer[contador]
-        add     $a0, $s1, $s4       # $a0 = &memoria[0] + contador*4 === &memoria[contador]
+        add     $t1, $s0, $s3       # $t1 = &buffer[0] + contador  === &buffer[contador]
+        
+        lw      $s4, 0($t1)         # $s4 = buffer[contador] - Dado a escrever na memoria
+        
+        add     $a0, $s1, $s3       # $a0 = &memoria[0] + contador === &memoria[contador] - Endereco a escrever o dado
+        move    $a1, $s4
+        jal     escreve_memoria
 
-        lw      $t2, 0($t1)         # buffer[contador]
-        ##PAREI AQUI
+        ##USAR UM PROCEDIMENTO QUE VC PASSA QUAL O INDEX (Ex.: 0x27db8597 com index 0 te retornaria 0x00000027) e usar o modulo pra calcular o indice ((contador/4)%4)
 
-        addi    $s3, $s3, 1
+        
+
+        addi    $s3, $s3, 4
         j       inicio_laco
+
     fim_laco:
 
     lw      $s0, 0($sp)
@@ -134,4 +141,5 @@ write_on_text_memory:
     lw      $s4, 16($sp)
     lw      $ra, 20($sp)
     addiu   $sp, $sp, 24
+    jr      $ra
 ##### FIM write_on_text_memory #####

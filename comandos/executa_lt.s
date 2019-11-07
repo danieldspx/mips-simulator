@@ -1,6 +1,7 @@
 .data:
 buffer_lt: .space 100
 error_msg_lt: .asciiz "Erro ao executar comando LT\n"
+success_msg_lt: .asciiz "Sucesso ao executar comando LT\n"
 .text:
 ##############
 # Argumentos:
@@ -27,8 +28,23 @@ executa_comando_lt:
     move    $s1, $v0            # Salvamos o file descriptor em $s1
     move    $a0, $s1            # $a0 = File descriptor
     la      $a1, buffer_lt      # Carrega o buffer de caracteres
-    addi    $a2, $zero, 100    # Maximo de caracteres a serem lidos
+    addi    $a2, $zero, 100     # Maximo de caracteres a serem lidos
     jal     read_file           # Chamar funcao para ler aquivo
+
+    la      $a0, buffer_lt
+    la      $a1, memoria_instrucoes
+    move    $a2, $v0            # $a2 = Quantidade de bytes a serem inseridos
+
+    jal     write_on_text_memory
+
+    la      $t0, buffer_lt
+    li      $t1, 0x0
+    sw      $t1, 0($t0) 
+
+    # Imprimir na tela mensagem de sucesso
+    la		$t0, success_msg_lt 
+    move    $a0, $t0        # $a0 = $t0 (Endereço da mensgem de sucesso)
+    jal     imprime_string  # imprime string
 
     j       fim_comando_lt
 
