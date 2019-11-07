@@ -91,3 +91,47 @@ read_file:
     syscall                # chamada ao sistema para ler o arquivo
     jr      $ra
 ##### FIM read_file #####
+
+
+##############
+# Argumentos:
+# $a0 = &buffer[0]
+# $a1 = &memoria[0]
+# $a2 = Quantidade de bytes a serem inseridos
+write_on_text_memory:
+    addiu   $sp, $sp, -24
+    sw      $s0, 0($sp)
+    sw      $s1, 4($sp)
+    sw      $s2, 8($sp)
+    sw      $s3, 12($sp)
+    sw      $s4, 16($sp)
+    sw      $ra, 20($sp)
+
+    move 	$s0, $a0		# $s0 = $a0 (&buffer[0])
+    move 	$s1, $a1		# $s1 = $a1 (&memoria[0])
+    move 	$s2, $a2		# $s2 = Quantidade de bytes a serem inseridos
+
+    li      $s3, 0          # Contador para saber qual byte estamos escrevendo na memoria
+
+    inicio_laco:
+        bgt		$s3, $s2, fim_laco	# if contador > bytes_a_serem_inseridos then fim_laco
+        
+        sll     $s4, $s3, 2         # $s4 = contador*4
+        add     $t1, $s0, $s4       # $t1 = &buffer[0] + contador*4  === &buffer[contador]
+        add     $a0, $s1, $s4       # $a0 = &memoria[0] + contador*4 === &memoria[contador]
+
+        lw      $t2, 0($t1)         # buffer[contador]
+        ##PAREI AQUI
+
+        addi    $s3, $s3, 1
+        j       inicio_laco
+    fim_laco:
+
+    lw      $s0, 0($sp)
+    lw      $s1, 4($sp)
+    lw      $s2, 8($sp)
+    lw      $s3, 12($sp)
+    lw      $s4, 16($sp)
+    lw      $ra, 20($sp)
+    addiu   $sp, $sp, 24
+##### FIM write_on_text_memory #####

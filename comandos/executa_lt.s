@@ -29,6 +29,7 @@ executa_comando_lt:
     la      $a1, buffer_lt      # Carrega o buffer de caracteres
     addi    $a2, $zero, 100    # Maximo de caracteres a serem lidos
     jal     read_file           # Chamar funcao para ler aquivo
+
     j       fim_comando_lt
 
     erro_comando_lt:
