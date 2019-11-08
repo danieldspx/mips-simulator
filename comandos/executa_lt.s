@@ -1,5 +1,5 @@
 .data:
-buffer_lt: .space 100
+buffer_lt: .space 100 # TODO: Aumentar o buffer
 error_msg_lt: .asciiz "Erro ao executar comando LT\n"
 success_msg_lt: .asciiz "Sucesso ao executar comando LT\n"
 .text:
@@ -35,7 +35,7 @@ executa_comando_lt:
     la      $a1, memoria_instrucoes
     move    $a2, $v0            # $a2 = Quantidade de bytes a serem inseridos
 
-    jal     write_on_text_memory
+    jal     write_buffer_on_memory
 
     la      $t0, buffer_lt
     li      $t1, 0x0

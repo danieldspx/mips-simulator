@@ -98,20 +98,22 @@ read_file:
 # $a0 = &buffer[0]
 # $a1 = &memoria[0]
 # $a2 = Quantidade de 4-bytes a serem inseridos 
-write_on_text_memory:
-    addiu   $sp, $sp, -24
+write_buffer_on_memory:
+    addiu   $sp, $sp, -28
     sw      $s0, 0($sp)
     sw      $s1, 4($sp)
     sw      $s2, 8($sp)
     sw      $s3, 12($sp)
     sw      $s4, 16($sp)
-    sw      $ra, 20($sp)
+    sw      $s5, 20($sp)
+    sw      $ra, 24($sp)
 
     move 	$s0, $a0		# $s0 = $a0 (&buffer[0])
     move 	$s1, $a1		# $s1 = $a1 (&memoria[0])
     move 	$s2, $a2		# $s2 = Quantidade de bytes a serem inseridos
+    move 	$s5, $zero		# $s5 = 0 (contador para inserir a 4-bytes word na memoria)
 
-    li      $s3, 0          # Contador para saber qual byte estamos escrevendo na memoria
+    li      $s3, 0          # (Word-Count) Contador para saber qual byte estamos escrevendo na memoria
 
     inicio_laco:
         sll     $t0, $s2, 2         # $t0 = (bytes_a_serem_inseridos)*4
@@ -121,15 +123,22 @@ write_on_text_memory:
         
         lw      $s4, 0($t1)         # $s4 = buffer[contador] - Dado a escrever na memoria
         
-        add     $a0, $s1, $s3       # $a0 = &memoria[0] + contador === &memoria[contador] - Endereco a escrever o dado
-        move    $a1, $s4
-        jal     escreve_memoria
-
-        ##USAR UM PROCEDIMENTO QUE VC PASSA QUAL O INDEX (Ex.: 0x27db8597 com index 0 te retornaria 0x00000027) e usar o modulo pra calcular o indice ((contador/4)%4)
-
+        inicio_laco_insere_word_na_memoria:
+        li      $t0, 4 
+        bge		$s5, $t0, fim_laco_insere	# if $s5(Word-Count) >= 4 then fim_laco_insere
         
+        move 	$a0, $s4		    # $a0 = $s4 (4-byte word a ser escrita)
+        move    $a1, $s5            # $a1 = Word-Count (Index da posicao que queremos pegar)
+        jal     get_specific_byte
 
-        addi    $s3, $s3, 4
+        add     $a0, $s1, $s3       # $a0 = &memoria[0] + contador === &memoria[contador] - Endereco a escrever o dado
+        move    $a1, $v0            # $v0 from get_specific_byte
+        jal     escreve_memoria
+        addi    $s5, $s5, 1         # Word-Count+1
+        addi    $s3, $s3, 4         # contador+4 -- Vai pra proxima posicao na memoria
+        j       inicio_laco_insere_word_na_memoria
+        fim_laco_insere:
+        move    $s5, $zero          # Word-Count = 0
         j       inicio_laco
 
     fim_laco:
@@ -139,7 +148,35 @@ write_on_text_memory:
     lw      $s2, 8($sp)
     lw      $s3, 12($sp)
     lw      $s4, 16($sp)
-    lw      $ra, 20($sp)
-    addiu   $sp, $sp, 24
+    lw      $s5, 20($sp)
+    lw      $ra, 24($sp)
+    addiu   $sp, $sp, 28
     jr      $ra
-##### FIM write_on_text_memory #####
+##### FIM write_buffer_on_memory #####
+
+
+##############
+# Argumentos:
+# $a0 = 4-bytes word
+# $a1 = index a ser retornado
+# Ex.: $a0 = 0x27BD9705 e $a1 = 2. O retorno sera 0x00000097
+# Este procedimento pega apenas o byte na posicao desejada
+# Retorno:
+# $v0 = O byte na posicao $a1 (index)
+get_specific_byte:
+    move 	$t0, $a0		# $t0 = $a0 (4-bytes word)
+    li      $t1, 0xFF000000 # Mascara inicial
+    sll     $a1, $a1, 3     # $a1 = index*8
+    srlv    $t1, $t1, $a1   # Desloca a mascara index*8 posicoes para a direita
+    and     $v0, $t0, $t1   # $v0 = (4-bytes word)&(marcara deslocada) - BITWISE AND 
+    # (index)  (shift-right)
+    # 0   -     6     = 32 - (0*8 + 8)
+    # index_n   -     SHIFT = 32 - (index_n*8 + 8)
+    # Precisamos deslocar o resultado de $v0 para direita seguindo a ideia acima
+    # Neste ponto $a1 = index*8, portanto
+    addi	$a1, $a1, 8			# $a1 = $a1 + 8 <-> (index_n*2 + 8)
+    li      $t1, 32
+    sub 	$t0, $t1, $a1			# $t0 = 32 - (index_n*8 + 8) -- Logo $t0 tem o valor que temos que deslocar
+    srlv    $v0, $v0, $t0
+    jr      $ra
+##### FIM get_specific_byte #####
