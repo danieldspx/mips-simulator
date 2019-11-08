@@ -32,14 +32,10 @@ executa_comando_lt:
     jal     read_file           # Chamar funcao para ler aquivo
 
     la      $a0, buffer_lt
-    la      $a1, memoria_instrucoes
+    li      $a1, ei_memoria_instrucoes # $a1 = Endereco inicial da memoria de instrucoes
     move    $a2, $v0            # $a2 = Quantidade de bytes a serem inseridos
 
     jal     write_buffer_on_memory
-
-    la      $t0, buffer_lt
-    li      $t1, 0x0
-    sw      $t1, 0($t0) 
 
     # Imprimir na tela mensagem de sucesso
     la		$t0, success_msg_lt 

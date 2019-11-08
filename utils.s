@@ -99,19 +99,21 @@ read_file:
 # $a1 = &memoria[0]
 # $a2 = Quantidade de 4-bytes a serem inseridos 
 write_buffer_on_memory:
-    addiu   $sp, $sp, -28
+    addiu   $sp, $sp, -32
     sw      $s0, 0($sp)
     sw      $s1, 4($sp)
     sw      $s2, 8($sp)
     sw      $s3, 12($sp)
     sw      $s4, 16($sp)
     sw      $s5, 20($sp)
-    sw      $ra, 24($sp)
+    sw      $s6, 24($sp)
+    sw      $ra, 28($sp)
 
     move 	$s0, $a0		# $s0 = $a0 (&buffer[0])
     move 	$s1, $a1		# $s1 = $a1 (&memoria[0])
     move 	$s2, $a2		# $s2 = Quantidade bytes_a_serem_inseridos
     move 	$s5, $zero		# $s5 = 0 (contador para inserir a 4-bytes word na memoria)
+    move 	$s6, $zero		# $s6 = 0 (contadorNormalizado para buscar do buffer)
 
     li      $s3, 0          # (Word-Count) Contador para saber qual byte estamos escrevendo na memoria
     sll     $s2, $s2, 2     # bytes_a_serem_inseridos*4 pois cada 4-bytes ocupam na realidade 16 bytes na memoria. 
@@ -120,7 +122,7 @@ write_buffer_on_memory:
     inicio_laco:
         bgt		$s3, $s2, fim_laco	# if contador > bytes_a_serem_inseridos then fim_laco (CONTADOR SEMPRE SERA MULTIPLO DE 4)
         
-        add     $t1, $s0, $s3       # $t1 = &buffer[0] + contador  === &buffer[contador]
+        add     $t1, $s0, $s6       # $t1 = &buffer[0] + contadorNormalizado === &buffer[contadorNormalizado]
         
         lw      $s4, 0($t1)         # $s4 = buffer[contador] - Dado a escrever na memoria
         
@@ -140,6 +142,7 @@ write_buffer_on_memory:
         j       inicio_laco_insere_word_na_memoria
         fim_laco_insere:
         move    $s5, $zero          # Word-Count = 0
+        addi    $s6, $s6, 4
         j       inicio_laco
 
     fim_laco:
@@ -150,8 +153,9 @@ write_buffer_on_memory:
     lw      $s3, 12($sp)
     lw      $s4, 16($sp)
     lw      $s5, 20($sp)
-    lw      $ra, 24($sp)
-    addiu   $sp, $sp, 28
+    lw      $s6, 24($sp)
+    lw      $ra, 28($sp)
+    addiu   $sp, $sp, 32
     jr      $ra
 ##### FIM write_buffer_on_memory #####
 
