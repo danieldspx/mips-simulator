@@ -18,12 +18,15 @@ main:
         la      $a0, buffer_linha
         jal     identifica_comando_e_chama_procedimento
     j laco_infinito_main
+
+    li  $v0, 17
+    syscall
 ######### FIM DA MAIN #########
 
 
 ########################################
 identifica_comando_e_chama_procedimento:
-    addiu $sp, $sp, -12
+    addiu   $sp, $sp, -12
     sw		$s0, 0($sp) 
     sw		$s1, 4($sp) 
     sw		$ra, 8($sp)

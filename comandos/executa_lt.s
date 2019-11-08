@@ -1,5 +1,5 @@
 .data:
-buffer_lt: .space 100 # TODO: Aumentar o buffer
+buffer_lt: .space 256
 error_msg_lt: .asciiz "Erro ao executar comando LT\n"
 success_msg_lt: .asciiz "Sucesso ao executar comando LT\n"
 .text:
@@ -28,7 +28,7 @@ executa_comando_lt:
     move    $s1, $v0            # Salvamos o file descriptor em $s1
     move    $a0, $s1            # $a0 = File descriptor
     la      $a1, buffer_lt      # Carrega o buffer de caracteres
-    addi    $a2, $zero, 100     # Maximo de caracteres a serem lidos
+    addi    $a2, $zero, 256     # Maximo de caracteres a serem lidos
     jal     read_file           # Chamar funcao para ler aquivo
 
     la      $a0, buffer_lt
