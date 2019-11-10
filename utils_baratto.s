@@ -266,7 +266,6 @@ leia_memoria:
             # armazenamos os argumentos nos registradores $s0 e $s1 porque chamaremos
             # um procedimento 
             move    $s0, $a0 # $s0 <- endereço de memória
-            move    $s1, $a1 # $s1 <- dado para escrita no endereço de memoria
             # verificamos se o endereço pertence ao segmento de instruções
 le_memoria_instrucoes:            
             #       $a0 já possui o endereço de memória
