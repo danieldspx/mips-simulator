@@ -17,8 +17,7 @@ fetch_execute_cycle:
     sw		$ra, 0($sp)
     
     jal		fetch_instruction   # jump to fetch_instruction and save position to $ra
-    # Agora a instrucao a ser decodificada se encontra em IR
-    
+    jal		decode_instruction  # jump to decode_instruction and save position to $ra
 
     lw		$ra, 0($sp)
     addiu   $sp, $sp, 4
@@ -122,11 +121,19 @@ decode_instruction:
 
     ### DECODE IMM - Tipo I
     andi    $t0, $s0, mask_imm_i    # Aplica mask_funct (Nao necessario deslocar para a direita)
+    move 	$a0, $t0		        # $a0 = $t0 (Valor a ser extendido)
+    li      $a1, 15                 # $a1 = 15 (Index do bit a ser usado na extensao de sinal)
+    jal     extend_signal
+    move 	$t0, $v0		        # $t0 = $v0 (Valor extendido)
     la		$t1, IR_campo_imm		# $t1 <- Endereco do IR_campo_imm
     sw		$t0, 0($t1)		        # $t0 -> IR_campo_imm
 
     ### DECODE IMM - Tipo J
     andi    $t0, $s0, mask_imm_j    # Aplica mask_funct (Nao necessario deslocar para a direita)
+    move 	$a0, $t0		        # $a0 = $t0 (Valor a ser extendido)
+    li      $a1, 25                 # $a1 = 25 (Index do bit a ser usado na extensao de sinal)
+    jal     extend_signal
+    move 	$t0, $v0		        # $t0 = $v0 (Valor extendido)
     la		$t1, IR_campo_j		    # $t1 <- Endereco do IR_campo_j
     sw		$t0, 0($t1)		        # $t0 -> IR_campo_j
 

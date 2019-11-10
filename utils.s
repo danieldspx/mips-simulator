@@ -189,10 +189,33 @@ get_specific_byte:
 
 ##############
 # Argumentos:
-# $a0 = &Variable
-# $a1 = index do bit a ser replicado
-# Ex.: $a0 = 0x27BD9705 e $a1 = 2. O retorno sera 0x00000097
-# Este procedimento pega apenas o byte na posicao desejada
+# $a0 = Valor a ser extendido
+# $a1 = index_bit_replicado (index do bit a ser replicado)
 # Retorno:
-# $v0 = O byte na posicao $a1 (index)
+# $v0 = Valor extendido
 extend_signal:
+    li		$t0, 0x00000001		# $t0 = 0x00000001 Mask_Extend
+    sllv    $t0, $t0, $a1       # Desloca para a esquerda ate chegarmos no bit a ser replicado
+    and     $t1, $a0, $t0       # $t1 = Value & Mask_Extend = 0 ou Valor diferente de zero
+    
+    beqz    $t1, valor_a_extender_eh_zero
+    j       valor_a_extender_eh_um
+    valor_a_extender_eh_zero:
+        #Precisamos de uma nova Mask_Extend
+        li		$t0, 0xFFFFFFFF
+        li		$t2, 31		        # $t2 = 31
+        sub		$t1, $t2, $a1		# $t1 = 31 - index_bit_replicado
+        srlv    $t0, $t0, $t1       # Mask_Extend agora esta deslocada para setar como zero os
+                                    # valores apos o index_bit_replicado
+        and     $v0, $a0, $t0       # Aplica a mascara
+        j       fim_extend_signal
+    valor_a_extender_eh_um:
+        #Precisamos de uma nova Mask_Extend
+        li		$t0, 0xFFFFFFFF
+        sllv    $t0, $t0, $a1       # Mask_Extend agora esta deslocada para setar como zero os
+                                    # valores apos o index_bit_replicado
+        or      $v0, $a0, $t0       # Aplica a mascara
+        j       fim_extend_signal
+    fim_extend_signal:
+    jr		$ra					# jump to $ra
+##### FIM extend_signal #####
