@@ -99,20 +99,22 @@ read_file:
 # $a1 = &memoria[0]
 # $a2 = Quantidade de 4-bytes a serem inseridos 
 write_buffer_on_memory:
-    addiu   $sp, $sp, -28
+    addiu   $sp, $sp, -32
     sw      $s0, 0($sp)
     sw      $s1, 4($sp)
     sw      $s2, 8($sp)
     sw      $s3, 12($sp)
     sw      $s4, 16($sp)
     sw      $s5, 20($sp)
-    sw      $ra, 24($sp)
+    sw      $s6, 24($sp)
+    sw      $ra, 28($sp)
 
     move 	$s0, $a0		# $s0 = $a0 (&buffer[0])
     move 	$s1, $a1		# $s1 = $a1 (&memoria[0])
     move 	$s2, $a2		# $s2 = Quantidade bytes_a_serem_inseridos
     move 	$s5, $zero		# $s5 = 0 (contador para inserir a 4-bytes word na memoria)
 
+    li		$s6, 0		    # $s6 = 0 (Buffer-Word-Count)
     li      $s3, 0          # (Word-Count) Contador para saber qual byte estamos escrevendo na memoria
     sll     $s2, $s2, 2     # bytes_a_serem_inseridos*4 pois cada 4-bytes ocupam na realidade 16 bytes na memoria. 
                             # 1 byte para cada 4 bytes de espaco na memoria
@@ -120,25 +122,26 @@ write_buffer_on_memory:
     inicio_laco:
         bgt		$s3, $s2, fim_laco	# if contador > bytes_a_serem_inseridos then fim_laco (CONTADOR SEMPRE SERA MULTIPLO DE 4)
         
-        add     $t1, $s0, $s3       # $t1 = &buffer[0] + contador  === &buffer[contador]
+        add     $t1, $s0, $s6       # $t1 = &buffer[0] + Buffer-Word-Count  === &buffer[Buffer-Word-Count]
         
         lw      $s4, 0($t1)         # $s4 = buffer[contador] - Dado a escrever na memoria
         
         inicio_laco_insere_word_na_memoria:
-        li      $t0, 4 
-        bge		$s5, $t0, fim_laco_insere	# if $s5(Word-Count) >= 4 then fim_laco_insere
-        
-        move 	$a0, $s4		    # $a0 = $s4 (4-byte word a ser escrita)
-        move    $a1, $s5            # $a1 = Word-Count (Index da posicao que queremos pegar)
-        jal     get_specific_byte
+            li      $t0, 4 
+            bge		$s5, $t0, fim_laco_insere	# if $s5(Word-Count) >= 4 then fim_laco_insere
+            
+            move 	$a0, $s4		    # $a0 = $s4 (4-byte word a ser escrita)
+            move    $a1, $s5            # $a1 = Word-Count (Index da posicao que queremos pegar)
+            jal     get_specific_byte
 
-        add     $a0, $s1, $s3       # $a0 = &memoria[0] + contador === &memoria[contador] - Endereco a escrever o dado
-        move    $a1, $v0            # $v0 from get_specific_byte
-        jal     escreve_memoria
-        addi    $s5, $s5, 1         # Word-Count+1
-        addi    $s3, $s3, 4         # contador+4 -- Vai pra proxima posicao na memoria
-        j       inicio_laco_insere_word_na_memoria
+            add     $a0, $s1, $s3       # $a0 = &memoria[0] + contador === &memoria[contador] - Endereco a escrever o dado
+            move    $a1, $v0            # $v0 from get_specific_byte
+            jal     escreve_memoria
+            addi    $s5, $s5, 1         # Word-Count+1
+            addi    $s3, $s3, 4         # contador+4 -- Vai pra proxima posicao na memoria
+            j       inicio_laco_insere_word_na_memoria
         fim_laco_insere:
+        addi	$s6, $s6, 4			# $s6 = $s6 + 4
         move    $s5, $zero          # Word-Count = 0
         j       inicio_laco
 
@@ -150,8 +153,9 @@ write_buffer_on_memory:
     lw      $s3, 12($sp)
     lw      $s4, 16($sp)
     lw      $s5, 20($sp)
-    lw      $ra, 24($sp)
-    addiu   $sp, $sp, 28
+    lw      $s6, 24($sp)
+    lw      $ra, 28($sp)
+    addiu   $sp, $sp, 32
     jr      $ra
 ##### FIM write_buffer_on_memory #####
 
