@@ -1,6 +1,8 @@
 .data:
-buffer_ld: .space 100
+.align 2
+buffer_ld: .space 256
 error_msg_ld: .asciiz "Erro ao executar comando LD\n"
+success_msg_ld: .asciiz "Sucesso ao executar comando LD\n"
 .text:
 ##############
 # Argumentos:
@@ -22,13 +24,29 @@ executa_comando_ld:
     jal		open_file           # jump to read_file and save position to $ra
 
     # Se o arquivo não foi aberto corretamente, throw error 
-    blt		$v0, $zero, erro_comando_ld	# if $v0 < $t1 then erro_comando_ld
+    blt		$v0, $zero, erro_comando_ld	# if $v0 < $t1 then erro_comando_lt
 
     move    $s1, $v0            # Salvamos o file descriptor em $s1
     move    $a0, $s1            # $a0 = File descriptor
-    la      $a1, buffer_ld         # Carrega o buffer de caracteres
-    addi    $a2, $zero, 100    # Maximo de caracteres a serem lidos
+    la      $a1, buffer_ld      # Carrega o buffer de caracteres
+    addi    $a2, $zero, 256     # Maximo de caracteres a serem lidos
     jal     read_file           # Chamar funcao para ler aquivo
+
+    la      $a0, buffer_ld
+    la      $a1, ei_memoria_dados
+    move    $a2, $v0            # $a2 = Quantidade de bytes a serem inseridos
+
+    jal     write_buffer_on_memory
+
+    la      $t0, buffer_ld
+    li      $t1, 0x0
+    sw      $t1, 0($t0) 
+
+    # Imprimir na tela mensagem de sucesso
+    la		$t0, success_msg_ld 
+    move    $a0, $t0        # $a0 = $t0 (Endereço da mensgem de sucesso)
+    jal     imprime_string  # imprime stringfrit
+
     j       fim_comando_ld
 
     erro_comando_ld:
