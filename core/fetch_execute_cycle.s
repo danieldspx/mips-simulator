@@ -1,4 +1,12 @@
 .text
+.eqv    mask_op_code    0xFC000000 # -> 31 - 26 (6)      OP
+.eqv    mask_rs         0x03E00000 # -> 25 - 21 (5)     RS
+.eqv    mask_rt         0x001F0000 # -> 20 - 16 (5)     RT
+.eqv    mask_rd         0x0000F800 # -> 15 - 11 (5)     RD
+.eqv    mask_shamt      0x000007C0 # -> 10 - 6  (5)     SHAMT
+.eqv    mask_funct      0x0000003F # -> 5  - 0  (6)     FUNCT
+.eqv    mask_imm_i      0x0000FFFF # -> 15 - 0  (16)    IMM (Tipo I)
+.eqv    mask_imm_j      0x03FFFFFF # -> 25 - 0  (26)    IMM (Tipo J)
 
 ##############
 # Argumentos:
@@ -11,6 +19,7 @@ fetch_execute_cycle:
     jal		fetch_instruction   # jump to fetch_instruction and save position to $ra
     # Agora a instrucao a ser decodificada se encontra em IR
     
+
     lw		$ra, 0($sp)
     addiu   $sp, $sp, 4
     jr		$ra					# jump to $ra
@@ -62,3 +71,67 @@ fetch_instruction:
     jr		$ra					# jump to $ra
 ##### FIM fetch_instruction #####
 
+
+##############
+# Argumentos:
+# Nenhum
+# Este procedimento faz o decode da instrucao que
+# esta em IR e coloca em cada um dos seus respectivos IR_campo 
+decode_instruction:
+    addiu   $sp, $sp, -8
+    sw		$s0, 0($sp)
+    sw		$ra, 4($sp) 
+    
+    la		$t0, IR		# $t0 <- Endereco de IR
+    lw		$s0, 0($t0) # $s0 <- Valor guardado em IR (Instrucao a ser decodificada)
+
+    ### DECODE OP
+    andi    $t0, $s0, mask_op_code  # Aplica mask_op_code
+    srl     $t0, $t0, 26            # Desloca 26 bits pra direita
+    la		$t1, IR_campo_op		# $t1 <- Endereco do IR_campo_op
+    sw		$t0, 0($t1)		        # $t0 -> IR_campo_op
+
+    ### DECODE RS
+    andi    $t0, $s0, mask_rs       # Aplica mask_rs
+    srl     $t0, $t0, 21            # Desloca 21 bits pra direita
+    la		$t1, IR_campo_rs		# $t1 <- Endereco do IR_campo_rs
+    sw		$t0, 0($t1)		        # $t0 -> IR_campo_rs
+
+    ### DECODE RT
+    andi    $t0, $s0, mask_rt       # Aplica mask_rt
+    srl     $t0, $t0, 16            # Desloca 16 bits pra direita
+    la		$t1, IR_campo_rt		# $t1 <- Endereco do IR_campo_rt
+    sw		$t0, 0($t1)		        # $t0 -> IR_campo_rt
+
+    ### DECODE RD
+    andi    $t0, $s0, mask_rd       # Aplica mask_rd
+    srl     $t0, $t0, 11            # Desloca 11 bits pra direita
+    la		$t1, IR_campo_rd		# $t1 <- Endereco do IR_campo_rt
+    sw		$t0, 0($t1)		        # $t0 -> IR_campo_rd
+
+    ### DECODE SHAMT
+    andi    $t0, $s0, mask_shamt    # Aplica mask_rd
+    srl     $t0, $t0, 6             # Desloca 6 bits pra direita
+    la		$t1, IR_campo_shamt		# $t1 <- Endereco do IR_campo_shamt
+    sw		$t0, 0($t1)		        # $t0 -> IR_campo_shamt
+
+    ### DECODE FUNCT
+    andi    $t0, $s0, mask_funct    # Aplica mask_funct (Nao necessario deslocar para a direita)
+    la		$t1, IR_campo_funct		# $t1 <- Endereco do IR_campo_funct
+    sw		$t0, 0($t1)		        # $t0 -> IR_campo_funct
+
+    ### DECODE IMM - Tipo I
+    andi    $t0, $s0, mask_imm_i    # Aplica mask_funct (Nao necessario deslocar para a direita)
+    la		$t1, IR_campo_imm		# $t1 <- Endereco do IR_campo_imm
+    sw		$t0, 0($t1)		        # $t0 -> IR_campo_imm
+
+    ### DECODE IMM - Tipo J
+    andi    $t0, $s0, mask_imm_j    # Aplica mask_funct (Nao necessario deslocar para a direita)
+    la		$t1, IR_campo_j		    # $t1 <- Endereco do IR_campo_j
+    sw		$t0, 0($t1)		        # $t0 -> IR_campo_j
+
+    lw		$s0, 0($sp) 
+    lw		$ra, 4($sp) 
+    addiu   $sp, $sp, 8
+    jr		$ra					# jump to $ra
+##### FIM decode_instruction #####

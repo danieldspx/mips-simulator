@@ -185,3 +185,14 @@ get_specific_byte:
     srlv    $v0, $v0, $t0
     jr      $ra
 ##### FIM get_specific_byte #####
+
+
+##############
+# Argumentos:
+# $a0 = &Variable
+# $a1 = index do bit a ser replicado
+# Ex.: $a0 = 0x27BD9705 e $a1 = 2. O retorno sera 0x00000097
+# Este procedimento pega apenas o byte na posicao desejada
+# Retorno:
+# $v0 = O byte na posicao $a1 (index)
+extend_signal:
