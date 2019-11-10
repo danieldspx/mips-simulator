@@ -32,7 +32,7 @@ executa_comando_lt:
     jal     read_file           # Chamar funcao para ler aquivo
 
     la      $a0, buffer_lt
-    la      $a1, memoria_instrucoes
+    la      $a1, ei_memoria_instrucoes
     move    $a2, $v0            # $a2 = Quantidade de bytes a serem inseridos
 
     jal     write_buffer_on_memory
