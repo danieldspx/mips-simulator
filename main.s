@@ -11,6 +11,7 @@ error_command_not_found: .asciiz "Comando nao encontrado\n"
 
 
 .text
+.include "global_variables.s"
 main:
     #INITIALIZE SOME GLOBAL VARIABLES
     jal		initialize_variables				# jump to initialize_variables and save position to $ra
@@ -138,20 +139,18 @@ initialize_variables:
     sw      $t1, 0($t0)     # PC_DEFAULT -> PC
 
     li		$a0, 29		    # $a0 = Indice do $sp = $29
-    li      $a1, SP_DEFAULT # $a1 = SP_DEFAULT (0x7FFFEFFC)
+    la      $a1, SP_DEFAULT # $a1 = SP_DEFAULT (0x7FFFEFFC)
     jal		escreve_registrador # jump to escreve_registrador and save position to $ra
     
     lw      $ra, 0($sp)
     addiu   $sp, $sp, 4
     jr      $ra
-
 ##### FIM initialize_variables #####
 
-
-.include "global_variables.s"
 .include "keyboard_display.s"
 .include "utils_baratto.s"
 .include "utils.s"
 .include "comands/executa_lt.s"
 .include "comands/executa_ld.s"
 .include "comands/executa_r.s"
+.include "core/fetch_execute_cycle.s"
