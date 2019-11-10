@@ -44,7 +44,7 @@ executa_comando_lt:
     # Imprimir na tela mensagem de sucesso
     la		$t0, success_msg_lt 
     move    $a0, $t0        # $a0 = $t0 (Endereço da mensgem de sucesso)
-    jal     imprime_string  # imprime string
+    jal     imprime_string  # imprime stringfrit
 
     j       fim_comando_lt
 
