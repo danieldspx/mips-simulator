@@ -1,4 +1,5 @@
 .data:
+.align 2
 buffer_ld: .space 256
 error_msg_ld: .asciiz "Erro ao executar comando LD\n"
 success_msg_ld: .asciiz "Sucesso ao executar comando LD\n"
