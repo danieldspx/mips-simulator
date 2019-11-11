@@ -18,6 +18,7 @@ fetch_execute_cycle:
     
     jal		fetch_instruction   # jump to fetch_instruction and save position to $ra
     jal		decode_instruction  # jump to decode_instruction and save position to $ra
+    jal		execute_instruction # jump to execute_instruction and save position to $ra
 
     lw		$ra, 0($sp)
     addiu   $sp, $sp, 4
@@ -142,3 +143,54 @@ decode_instruction:
     addiu   $sp, $sp, 8
     jr		$ra					# jump to $ra
 ##### FIM decode_instruction #####
+
+##############
+# Argumentos:
+# Nenhum
+# Este procedimento identifica qual eh o tipo de operacao deve ser executada
+# a partir do opcode
+execute_instruction:
+    addiu   $sp, $sp, -4
+    sw		$ra, 0($sp)
+
+    la      $t0, IR_campo_op
+    lw		$t0, 0($t0)		    # $t0 <- OP CODE
+
+    li      $t1, 0x09
+    beq		$t0, $t1, operation_eh_addiu	# if OP CODE == 0x09 then operation_code_eh_0x09
+
+    li      $t1, 0x00
+    beq		$t0, $t1, operation_code_eh_0x00	# if OP CODE == 0x00 then operation_code_eh_0x00
+
+    j       fim_execute_instruction # Quer dizer que o OP CODE nao foi mapeado. Talvez seja interessante mostrar uma mensagem de erro.
+    
+    # Etapa de identificacao
+    operation_code_eh_0x00:
+        # Agora identificamos a partido do FUNCT
+        la      $t0, IR_campo_op
+        lw		$t0, 0($t0)		        # $t0 <- FUNCT
+
+        li		$t1, 0x20		    # $t1 = 0x20
+        beq		$t0, $t1, operation_eh_add	# if $FUNCT == 0x20 then target
+        
+
+        j		fim_execute_instruction	# jump to fim_execute_instruction - Se chegar aqui entao o funct nao foi mapeado
+    #####
+
+
+    # Etapa de execucao
+    operation_eh_addiu:
+        jal execute_addiu
+    j   fim_execute_instruction
+    ###
+    operation_eh_add:
+        jal execute_add
+    j   fim_execute_instruction
+
+    fim_execute_instruction:
+    lw		$ra, 0($sp) 
+    addiu   $sp, $sp, 4
+    jr		$ra					# jump to $ra
+##### FIM execute_instruction #####
+
+.include "instructions.s"
