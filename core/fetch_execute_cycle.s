@@ -1,3 +1,6 @@
+.data:
+.align 2
+error_finding_op: .asciiz "Erro: OP CODE nao mapeado\n"
 .text
 .eqv    mask_op_code    0xFC000000 # -> 31 - 26 (6)      OP
 .eqv    mask_rs         0x03E00000 # -> 25 - 21 (5)     RS
@@ -156,26 +159,46 @@ execute_instruction:
     la      $t0, IR_campo_op
     lw		$t0, 0($t0)		    # $t0 <- OP CODE
 
+    # Etapa de identificacao - Primeira
     li      $t1, 0x09
     beq		$t0, $t1, operation_eh_addiu	# if OP CODE == 0x09 then operation_code_eh_0x09
 
     li      $t1, 0x00
     beq		$t0, $t1, operation_code_eh_0x00	# if OP CODE == 0x00 then operation_code_eh_0x00
-
-    j       fim_execute_instruction # Quer dizer que o OP CODE nao foi mapeado. Talvez seja interessante mostrar uma mensagem de erro.
     
-    # Etapa de identificacao
+    li      $t1, 0x2b
+    beq		$t0, $t1, operation_code_eh_sw	# if OP CODE == 0x2b then operation_code_eh_sw
+
+    li      $t1, 0x08
+    beq		$t0, $t1, operation_code_eh_addi	# if OP CODE == 0x2b then operation_code_eh_addi
+
+    j       erro_encontrar_op
+    
+    # Etapa de identificacao - Segunda
     operation_code_eh_0x00:
         # Agora identificamos a partido do FUNCT
         la      $t0, IR_campo_op
         lw		$t0, 0($t0)		        # $t0 <- FUNCT
 
         li		$t1, 0x20		    # $t1 = 0x20
-        beq		$t0, $t1, operation_eh_add	# if $FUNCT == 0x20 then target
+        beq		$t0, $t1, operation_eh_add	# if $FUNCT == 0x20 then operation_eh_add
+
+        li		$t1, 0x21		    # $t1 = 0x21
+        beq		$t0, $t1, operation_eh_addu	# if $FUNCT == 0x21 then operation_eh_addu
+
+        li		$t1, 0x0c		    # $t1 = 0x0c
+        beq		$t0, $t1, operation_eh_syscall	# if $FUNCT == 0x0c then operation_eh_syscall
         
 
-        j		fim_execute_instruction	# jump to fim_execute_instruction - Se chegar aqui entao o funct nao foi mapeado
+        j		erro_encontrar_op	# jump to fim_execute_instruction - Se chegar aqui entao o funct nao foi mapeado
     #####
+
+    erro_encontrar_op:
+    # Imprimir na tela mensagem de erro
+    la		$t0, error_finding_op 
+    move    $a0, $t0        # $a0 = $t0 (Endereço da mensgem de erro)
+    jal     imprime_string  # imprime string
+    j       fim_execute_instruction
 
 
     # Etapa de execucao
@@ -185,6 +208,22 @@ execute_instruction:
     ###
     operation_eh_add:
         jal execute_add
+    j   fim_execute_instruction
+    ###
+    operation_eh_addu:
+        jal execute_addu
+    j   fim_execute_instruction
+    ###
+    operation_eh_syscall:
+        jal execute_syscall
+    j   fim_execute_instruction
+    ###
+    operation_code_eh_sw:
+        jal execute_sw
+    j   fim_execute_instruction
+    ###
+    operation_code_eh_addi:
+        jal executa_addi
     j   fim_execute_instruction
 
     fim_execute_instruction:
