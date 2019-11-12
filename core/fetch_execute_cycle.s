@@ -161,16 +161,37 @@ execute_instruction:
 
     # Etapa de identificacao - Primeira
     li      $t1, 0x09
-    beq		$t0, $t1, operation_eh_addiu	# if OP CODE == 0x09 then operation_code_eh_0x09
+    beq		$t0, $t1, operation_eh_addiu	    # if OP CODE == 0x09 then operation_code_eh_0x09
 
     li      $t1, 0x00
     beq		$t0, $t1, operation_code_eh_0x00	# if OP CODE == 0x00 then operation_code_eh_0x00
     
     li      $t1, 0x2b
-    beq		$t0, $t1, operation_code_eh_sw	# if OP CODE == 0x2b then operation_code_eh_sw
+    beq		$t0, $t1, operation_code_eh_sw	    # if OP CODE == 0x2b then operation_code_eh_sw
 
     li      $t1, 0x08
-    beq		$t0, $t1, operation_code_eh_addi	# if OP CODE == 0x2b then operation_code_eh_addi
+    beq		$t0, $t1, operation_code_eh_addi	# if OP CODE == 0x08 then operation_code_eh_addi
+
+    li      $t1, 0x03
+    beq		$t0, $t1, operation_code_eh_jal	    # if OP CODE == 0x02 then operation_code_eh_jal
+
+    li      $t1, 0x23
+    beq		$t0, $t1, operation_code_eh_lw	    # if OP CODE == 0x23 then operation_code_eh_lw
+    
+    li      $t1, 0x0f
+    beq		$t0, $t1, operation_code_eh_lui	    # if OP CODE == 0x0f then operation_code_eh_lui
+
+    li      $t1, 0x05
+    beq		$t0, $t1, operation_code_eh_bne	    # if OP CODE == 0x05 then operation_code_eh_bne
+
+    li      $t1, 0x0d
+    beq		$t0, $t1, operation_code_eh_ori	    # if OP CODE == 0x0d then operation_code_eh_ori
+
+    li      $t1, 0x02
+    beq		$t0, $t1, operation_code_eh_j	    # if OP CODE == 0x0d then operation_code_eh_j
+    
+    li      $t1, 0x1c
+    beq		$t0, $t1, operation_code_eh_0x1c    # if OP CODE == 0x1c then operation_code_eh_0x1c
 
     j       erro_encontrar_op
     
@@ -188,10 +209,22 @@ execute_instruction:
 
         li		$t1, 0x0c		    # $t1 = 0x0c
         beq		$t0, $t1, operation_eh_syscall	# if $FUNCT == 0x0c then operation_eh_syscall
+
+        li		$t1, 0x08		    # $t1 = 0x08
+        beq		$t0, $t1, operation_code_eh_jr	# if $FUNCT == 0x08 then operation_code_eh_jr
         
 
         j		erro_encontrar_op	# jump to fim_execute_instruction - Se chegar aqui entao o funct nao foi mapeado
     #####
+    operation_code_eh_0x1c:
+        # Agora identificamos a partido do FUNCT
+        la      $t0, IR_campo_op
+        lw		$t0, 0($t0)		        # $t0 <- FUNCT
+
+        li		$t1, 0x02		    # $t1 = 0x02
+        beq		$t0, $t1, operation_code_eh_mul	# if $FUNCT == 0x02 then operation_code_eh_mul
+
+        j		erro_encontrar_op	# jump to fim_execute_instruction - Se chegar aqui entao o funct nao foi mapeado
 
     erro_encontrar_op:
     # Imprimir na tela mensagem de erro
@@ -224,6 +257,38 @@ execute_instruction:
     ###
     operation_code_eh_addi:
         jal executa_addi
+    j   fim_execute_instruction
+    ###
+    operation_code_eh_jal:
+        jal execute_jal
+    j   fim_execute_instruction
+    ###
+    operation_code_eh_lw:
+        jal execute_lw
+    j   fim_execute_instruction
+    ###
+    operation_code_eh_lui:
+        jal execute_lui
+    j   fim_execute_instruction
+    ###
+    operation_code_eh_bne:
+        jal execute_bne
+    j   fim_execute_instruction
+    ###
+    operation_code_eh_ori:
+        jal execute_ori
+    j   fim_execute_instruction
+    ###
+    operation_code_eh_jr:
+        jal execute_jr
+    j   fim_execute_instruction
+    ###
+    operation_code_eh_j:
+        jal execute_j
+    j   fim_execute_instruction
+    ###
+    operation_code_eh_mul:
+        jal execute_mul
     j   fim_execute_instruction
 
     fim_execute_instruction:
