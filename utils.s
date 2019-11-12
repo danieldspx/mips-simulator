@@ -221,3 +221,36 @@ extend_signal:
     fim_extend_signal:
     jr		$ra					# jump to $ra
 ##### FIM extend_signal #####
+
+
+##############
+# Argumentos:
+# $a0 = &buffer - Deve possuir pelo menos 11 posicoes para a string
+# $a1 = numHex
+# Retorno:
+# $v0 = 1 se a conversao foi realizada com sucesso e 0 caso houver erro
+convert_hex_2_string:
+    addiu   $sp, $sp, -8
+    sw      $ra, 0($sp)
+    sw      $s0, 4($sp)
+    
+    move    $s0, $a0            # $s0 <- Cursor de &buffer
+    # Escrevemos 0x na mao
+    li		$t0, '0'		# $t0 = '0'
+    sb		$t0, 0($s0)		# buffer[0] = '0'
+
+    add     $s0, $s0, 1
+    li		$t0, 'x'		# $t0 = 'x'
+    sb		$t0, 0($s0)		# buffer[1] = 'x'
+
+    li		$t0, 0xF0000000	# $t0 = 0xF0000000 Byte_mask
+
+    inicio_laco_convert_hex_2_string:
+        
+        srl     $t0, $t0, 2 # Byte_mask
+    fim_laco_convert_hex_2_string:
+
+    lw      $ra, 0($sp)
+    lw      $s0, 4($sp)
+    addiu   $sp, $sp, 8
+##### FIM convert_hex_2_string #####
