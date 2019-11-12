@@ -11,7 +11,12 @@ error_command_not_found: .asciiz "Comando nao encontrado\n"
 
 
 .text
+.include "global_variables.s"
 main:
+    #INITIALIZE SOME GLOBAL VARIABLES
+    jal		initialize_variables				# jump to initialize_variables and save position to $ra
+    
+
     laco_infinito_main:
         la      $a0, buffer_linha
         jal     leia_linha    
@@ -24,7 +29,9 @@ main:
 ######### FIM DA MAIN #########
 
 
-########################################
+##############
+# Argumentos:
+# $a0 = &vetorDeCaracteres[0]
 identifica_comando_e_chama_procedimento:
     addiu   $sp, $sp, -12
     sw		$s0, 0($sp) 
@@ -64,20 +71,44 @@ identifica_comando_e_chama_procedimento:
         j		comando_nao_encontrado
 
     comando_eh_lt:
+        addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[1] + 1
+        lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[2]
+        li      $t0, ' '
+        bne		$t1, $t0, fim_identifica	# if vetorDeCaracteres[1] != ' ' then fim_identifica
+
         move    $a0, $s0        # $a0 = $s0
         jal     executa_comando_lt
         j		fim_identifica
     comando_eh_ld:
+        addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[1] + 1
+        lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[2]
+        li      $t0, ' '
+        bne		$t1, $t0, fim_identifica	# if vetorDeCaracteres[2] != ' ' then fim_identifica
+
         move    $a0, $s0        # $a0 = $s0
         jal     executa_comando_ld
         j		fim_identifica
     comando_eh_r:
-
+        addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[0] + 1
+        lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[1]
+        li      $t0, ' '
+        bne		$t1, $t0, fim_identifica	# if vetorDeCaracteres[1] != ' ' then fim_identifica
+        
+        move    $a0, $s0        # $a0 = $s0 (&vetorDeCaracteres[0])
+        jal     executa_comando_r
         j		fim_identifica
     comando_eh_d:
+        addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[0] + 1
+        lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[1]
+        li      $t0, ' '
+        bne		$t1, $t0, fim_identifica	# if vetorDeCaracteres[1] != ' ' then fim_identifica
 
         j		fim_identifica
     comando_eh_m:
+        addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[0] + 1
+        lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[1]
+        li      $t0, ' '
+        bne		$t1, $t0, fim_identifica	# if vetorDeCaracteres[1] != ' ' then fim_identifica
 
         j		fim_identifica
 
@@ -96,9 +127,30 @@ identifica_comando_e_chama_procedimento:
 ##### FIM identifica_comando_e_chama_procedimento #####
 
 
+##############
+# Argumentos:
+# Nao ha argumentos
+initialize_variables:
+    addiu   $sp, $sp, -4
+    sw      $ra, 0($sp)
+
+    la		$t0, PC		    # Carrega endereco de PC em $t0
+    li      $t1, PC_DEFAULT # $t1 = PC_DEFAULT (0x00400000)
+    sw      $t1, 0($t0)     # PC_DEFAULT -> PC
+
+    li		$a0, 29		    # $a0 = Indice do $sp = $29
+    la      $a1, SP_DEFAULT # $a1 = SP_DEFAULT (0x7FFFEFFC)
+    jal		escreve_registrador # jump to escreve_registrador and save position to $ra
+    
+    lw      $ra, 0($sp)
+    addiu   $sp, $sp, 4
+    jr      $ra
+##### FIM initialize_variables #####
 
 .include "keyboard_display.s"
 .include "utils_baratto.s"
 .include "utils.s"
-.include "comandos/executa_lt.s"
-.include "comandos/executa_ld.s"
+.include "comands/executa_lt.s"
+.include "comands/executa_ld.s"
+.include "comands/executa_r.s"
+.include "core/fetch_execute_cycle.s"

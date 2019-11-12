@@ -115,6 +115,7 @@ write_buffer_on_memory:
     move 	$s5, $zero		# $s5 = 0 (contador para inserir a 4-bytes word na memoria)
     move 	$s6, $zero		# $s6 = 0 (contadorNormalizado para buscar do buffer)
 
+    li		$s6, 0		    # $s6 = 0 (Buffer-Word-Count)
     li      $s3, 0          # (Word-Count) Contador para saber qual byte estamos escrevendo na memoria
     sll     $s2, $s2, 2     # bytes_a_serem_inseridos*4 pois cada 4-bytes ocupam na realidade 16 bytes na memoria. 
                             # 1 byte para cada 4 bytes de espaco na memoria
@@ -122,25 +123,26 @@ write_buffer_on_memory:
     inicio_laco:
         bgt		$s3, $s2, fim_laco	# if contador > bytes_a_serem_inseridos then fim_laco (CONTADOR SEMPRE SERA MULTIPLO DE 4)
         
-        add     $t1, $s0, $s6       # $t1 = &buffer[0] + contadorNormalizado === &buffer[contadorNormalizado]
+        add     $t1, $s0, $s6       # $t1 = &buffer[0] + Buffer-Word-Count  === &buffer[Buffer-Word-Count]
         
         lw      $s4, 0($t1)         # $s4 = buffer[contador] - Dado a escrever na memoria
         
         inicio_laco_insere_word_na_memoria:
-        li      $t0, 4 
-        bge		$s5, $t0, fim_laco_insere	# if $s5(Word-Count) >= 4 then fim_laco_insere
-        
-        move 	$a0, $s4		    # $a0 = $s4 (4-byte word a ser escrita)
-        move    $a1, $s5            # $a1 = Word-Count (Index da posicao que queremos pegar)
-        jal     get_specific_byte
+            li      $t0, 4 
+            bge		$s5, $t0, fim_laco_insere	# if $s5(Word-Count) >= 4 then fim_laco_insere
+            
+            move 	$a0, $s4		    # $a0 = $s4 (4-byte word a ser escrita)
+            move    $a1, $s5            # $a1 = Word-Count (Index da posicao que queremos pegar)
+            jal     get_specific_byte
 
-        add     $a0, $s1, $s3       # $a0 = &memoria[0] + contador === &memoria[contador] - Endereco a escrever o dado
-        move    $a1, $v0            # $v0 from get_specific_byte
-        jal     escreve_memoria
-        addi    $s5, $s5, 1         # Word-Count+1
-        addi    $s3, $s3, 4         # contador+4 -- Vai pra proxima posicao na memoria
-        j       inicio_laco_insere_word_na_memoria
+            add     $a0, $s1, $s3       # $a0 = &memoria[0] + contador === &memoria[contador] - Endereco a escrever o dado
+            move    $a1, $v0            # $v0 from get_specific_byte
+            jal     escreve_memoria
+            addi    $s5, $s5, 1         # Word-Count+1
+            addi    $s3, $s3, 4         # contador+4 -- Vai pra proxima posicao na memoria
+            j       inicio_laco_insere_word_na_memoria
         fim_laco_insere:
+        addi	$s6, $s6, 4			# $s6 = $s6 + 4
         move    $s5, $zero          # Word-Count = 0
         addi    $s6, $s6, 4
         j       inicio_laco
@@ -185,3 +187,37 @@ get_specific_byte:
     srlv    $v0, $v0, $t0
     jr      $ra
 ##### FIM get_specific_byte #####
+
+
+##############
+# Argumentos:
+# $a0 = Valor a ser extendido
+# $a1 = index_bit_replicado (index do bit a ser replicado)
+# Retorno:
+# $v0 = Valor extendido
+extend_signal:
+    li		$t0, 0x00000001		# $t0 = 0x00000001 Mask_Extend
+    sllv    $t0, $t0, $a1       # Desloca para a esquerda ate chegarmos no bit a ser replicado
+    and     $t1, $a0, $t0       # $t1 = Value & Mask_Extend = 0 ou Valor diferente de zero
+    
+    beqz    $t1, valor_a_extender_eh_zero
+    j       valor_a_extender_eh_um
+    valor_a_extender_eh_zero:
+        #Precisamos de uma nova Mask_Extend
+        li		$t0, 0xFFFFFFFF
+        li		$t2, 31		        # $t2 = 31
+        sub		$t1, $t2, $a1		# $t1 = 31 - index_bit_replicado
+        srlv    $t0, $t0, $t1       # Mask_Extend agora esta deslocada para setar como zero os
+                                    # valores apos o index_bit_replicado
+        and     $v0, $a0, $t0       # Aplica a mascara
+        j       fim_extend_signal
+    valor_a_extender_eh_um:
+        #Precisamos de uma nova Mask_Extend
+        li		$t0, 0xFFFFFFFF
+        sllv    $t0, $t0, $a1       # Mask_Extend agora esta deslocada para setar como zero os
+                                    # valores apos o index_bit_replicado
+        or      $v0, $a0, $t0       # Aplica a mascara
+        j       fim_extend_signal
+    fim_extend_signal:
+    jr		$ra					# jump to $ra
+##### FIM extend_signal #####
