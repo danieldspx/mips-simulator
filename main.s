@@ -100,9 +100,9 @@ identifica_comando_e_chama_procedimento:
     comando_eh_d:
         addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[0] + 1
         lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[1]
-        li      $t0, ' '
+        li      $t0, '\0'
         bne		$t1, $t0, fim_identifica	# if vetorDeCaracteres[1] != ' ' then fim_identifica
-
+        jal		executa_comando_d				# jump to executa_comando_d and save position to $ra
         j		fim_identifica
     comando_eh_m:
         addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[0] + 1
@@ -152,5 +152,6 @@ initialize_variables:
 .include "utils.s"
 .include "comands/executa_lt.s"
 .include "comands/executa_ld.s"
+.include "comands/executa_d.s"
 .include "comands/executa_r.s"
 .include "core/fetch_execute_cycle.s"

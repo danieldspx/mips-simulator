@@ -2,9 +2,10 @@
 #################################################################################
 # variáveis para o simulador
 #################################################################################
-
-# registradores de uso geral 
 .align 2
+#
+buffer_general: .space 500
+# registradores de uso geral 
 registradores:  .space 128          # 32 registradores de uso geral (registradores de 32 bits)
 # outros registradores
 PC:             .space 4            # contador de programa (contém o endereço da instrução atual)
