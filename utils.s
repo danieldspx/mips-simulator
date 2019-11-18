@@ -144,7 +144,6 @@ write_buffer_on_memory:
         fim_laco_insere:
         addi	$s6, $s6, 4			# $s6 = $s6 + 4
         move    $s5, $zero          # Word-Count = 0
-        addi    $s6, $s6, 4
         j       inicio_laco
 
     fim_laco:
@@ -225,16 +224,18 @@ extend_signal:
 
 ##############
 # Argumentos:
-# $a0 = &buffer - Deve possuir pelo menos 11 posicoes para a string
+# $a0 = &buffer - Deve possuir pelo menos 12 posicoes para a string
 # $a1 = numHex
 # Retorno:
 # $v0 = 1 se a conversao foi realizada com sucesso e 0 caso houver erro
 convert_hex_2_string:
-    addiu   $sp, $sp, -8
+    addiu   $sp, $sp, -12
     sw      $ra, 0($sp)
     sw      $s0, 4($sp)
+    sw      $s1, 8($sp)		# Bits a shiftar >>
     
-    move    $s0, $a0            # $s0 <- Cursor de &buffer
+	li 		$s1, 28			# $s1 = 28
+    move    $s0, $a0        # $s0 <- Cursor de &buffer
     # Escrevemos 0x na mao
     li		$t0, '0'		# $t0 = '0'
     sb		$t0, 0($s0)		# buffer[0] = '0'
@@ -244,13 +245,44 @@ convert_hex_2_string:
     sb		$t0, 0($s0)		# buffer[1] = 'x'
 
     li		$t0, 0xF0000000	# $t0 = 0xF0000000 Byte_mask
-
+    add     $s0, $s0, 1
     inicio_laco_convert_hex_2_string:
+
+        beqz    $t0, fim_laco_convert_hex_2_string
+
+        and     $t1, $a1, $t0   # $t1 <- numHex & Byte_Mask (Byte isolado)
+		srlv	$t1, $t1, $s1	# Shiftar $t1 >> $s1_bytes
+        li		$t2, 0xa		# $t2 = 0xa
         
-        srl     $t0, $t0, 2 # Byte_mask
+        bge		$t1, $t2, h2s_eh_letra	# if $t1 >= 0xa then target
+        
+        li		$t2, '0'		# $t2 = '0'
+        add		$t2, $t2, $t1   # $t2 = '0' + Byte isolado
+        
+        j		h2s_epilogo_laco # jump to h2s_epilogo_laco
+        h2s_eh_letra:
+
+        li		$t2, 'a'		# $t2 = 'a'
+        subi    $t1, $t1, 0xa	# $t1 = $t1 - 0xa
+        add		$t2, $t2, $t1   # $t2 = 'a' + Byte isolado    
+
+        h2s_epilogo_laco:
+        sb      $t2, 0($s0)     # buffer[i] = Letra correspondente ao byte isolado
+        add     $s0, $s0, 1
+        subi    $s1, $s1, 4
+        srl     $t0, $t0, 4 	# Byte_mask
+        j		inicio_laco_convert_hex_2_string # jump to inicio_laco_convert_hex_2_string
     fim_laco_convert_hex_2_string:
+    li		$t2, '\n'		# $t2 = '\n'
+    sb      $t2, 0($s0)      # buffer[end-1] = '\n'
+
+    add     $s0, $s0, 1
+    li		$t2, '\0'		# $t2 = '\0'
+    sb      $t2, 0($s0)      # buffer[end] = '\0'
 
     lw      $ra, 0($sp)
     lw      $s0, 4($sp)
-    addiu   $sp, $sp, 8
+    lw      $s1, 8($sp)
+    addiu   $sp, $sp, 12
+    jr		$ra
 ##### FIM convert_hex_2_string #####
