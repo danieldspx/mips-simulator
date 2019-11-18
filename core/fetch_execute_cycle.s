@@ -1,6 +1,6 @@
 .data:
 .align 2
-error_finding_op: .asciiz "Erro: OP CODE nao mapeado\n"
+error_finding_op: .asciiz "Erro: OP CODE nao mapeado "
 .text
 .eqv    mask_op_code    0xFC000000 # -> 31 - 26 (6)      OP
 .eqv    mask_rs         0x03E00000 # -> 25 - 21 (5)     RS
@@ -198,8 +198,8 @@ execute_instruction:
     # Etapa de identificacao - Segunda
     operation_code_eh_0x00:
         # Agora identificamos a partido do FUNCT
-        la      $t0, IR_campo_op
-        lw		$t0, 0($t0)		        # $t0 <- FUNCT
+        la      $t0, IR_campo_funct
+        lw		$t0, 0($t0)		    # $t0 <- FUNCT
 
         li		$t1, 0x20		    # $t1 = 0x20
         beq		$t0, $t1, operation_eh_add	# if $FUNCT == 0x20 then operation_eh_add
@@ -218,7 +218,7 @@ execute_instruction:
     #####
     operation_code_eh_0x1c:
         # Agora identificamos a partido do FUNCT
-        la      $t0, IR_campo_op
+        la      $t0, IR_campo_funct
         lw		$t0, 0($t0)		        # $t0 <- FUNCT
 
         li		$t1, 0x02		    # $t1 = 0x02
@@ -231,6 +231,14 @@ execute_instruction:
     la		$t0, error_finding_op 
     move    $a0, $t0        # $a0 = $t0 (Endereço da mensgem de erro)
     jal     imprime_string  # imprime string
+    
+    # la      $t0, IR
+    # la		$a0, buffer_general
+    # lw		$a1, 0($t0)		        # $a1 <- OP CODE
+    # jal		convert_hex_2_string    # Converte Hex to String
+    # la		$a0, buffer_general
+    # jal     imprime_string  # imprime string
+
     j       fim_execute_instruction
 
 
@@ -292,6 +300,14 @@ execute_instruction:
     j   fim_execute_instruction
 
     fim_execute_instruction:
+
+    # la      $t0, IR
+    # la		$a0, buffer_general
+    # lw		$a1, 0($t0)		        # $a1 <- OP CODE
+    # jal		convert_hex_2_string    # Converte Hex to String
+    # la		$a0, buffer_general
+    # jal     imprime_string  # imprime string
+
     lw		$ra, 0($sp) 
     addiu   $sp, $sp, 4
     jr		$ra					# jump to $ra
