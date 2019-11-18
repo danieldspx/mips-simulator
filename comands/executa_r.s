@@ -18,13 +18,13 @@ executa_comando_r:
     #TODO: Adicionar mensagem de erro avisando que nao foi possivel pegar o argumento
 
     move 	$a0, $s0		       # $a0 <- Endereco para a primeira posicao onde comeca o argumento
-    la		$t0, 8($sp)		       # $t0 <- Endereco de 8($sp)
+    la		$t0, 12($sp)		   # $t0 <- Endereco de 8($sp)
     move	$a1, $t0               # $a1 <- &hasConverted
     jal     converte_string_decimal
     move    $s0, $v0               # $s0 = Numero de instrucoes a executar
     move 	$s1, $zero		       # Contador = 0
 
-    lw		$t0, 8($sp)		       # $t0 <- hasConverted
+    lw		$t0, 12($sp)		   # $t0 <- hasConverted
     
     beqz    $t0, fim_comando_r     # Se $t0 == 0 entao fim_comando_r (houve erro na conversao)
     #TODO: Adicionar mensagem de erro de conversao 
