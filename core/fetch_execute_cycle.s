@@ -54,7 +54,7 @@ fetch_instruction:
         move 	$a0, $s0		# $a0 = Endereco da instrucao
         jal     leia_memoria
         or      $s1, $s1, $v0   # Encaixamos o byte mais a direita da palavra sendo montada
-        addi	$s0, $s0, 4		# $s0 = Endereco armazenado em PC + 4
+        addi	$s0, $s0, 1		# $s0 = Endereco armazenado em PC + 1
         addi	$s2, $s2, 1     # contador++
         
         j       inicio_laco_fetch
