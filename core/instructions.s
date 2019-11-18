@@ -219,19 +219,10 @@ execute_jal:
     
     la		$t1, IR_campo_j     # $t1 <- &IR_campo_j
     lw		$t1, 0($t1)		    # $t1 <- Valor de IR_campo_j - Aqui ja temos o valor imediato
-    
-    # Aqui o valor de PC ta como se deslocassemos 4 posicoes para a proxima instrucao
-    # Mas no nosso simulador temos que deslocar 16 posicoes.
-    subi	$t1, $t1, 0x100000  # imm = imm - 0x100000 (0x00400000 >> 2)
-    # Agora temos o numero de enderecos que precisamos ir pra frente em relacao ao default de PC
-    # Multiplicamos por 4
-    sll     $t1, $t1, 2
-    # Somamos isso ao padrao de PC
-    addiu   $t1, $t1, 0x100000
 
     sll     $t1, $t1, 4         # imm << 4
     srl     $t1, $t1, 4         # imm >> 4
-    sll     $t1, $t1, 2         # imm << 2 (Aqui estamos multiplicando por 4 dnv pra obter 16 = 4x4)
+    sll     $t1, $t1, 2         # imm << 2 (Aqui estamos multiplicando por 4)
     or      $t2, $t1, $t0       # Append os 4-bit msb do PC+4 em imm
     
     la      $t0, PC             # $t0 <- &PC
@@ -274,7 +265,7 @@ execute_lw:
         move 	$a0, $s0		    # $a0 = $s0 (Endereco de memoria que queremos ler)
         jal     leia_memoria
         or      $s1, $s1, $v0       # Colocamos um byte na word
-        addi	$s0, $s0, 4	        # Endereco da memoria+4
+        addi	$s0, $s0, 1	        # Endereco da memoria+1
         addi	$s2, $s2, 1	        # contador+1
         j		laco_load_byte_lw   # jump to laco_load_byte_lw
     fim_load_byte_lw:
@@ -339,7 +330,7 @@ execute_bne:
     execute_bne_should_branch:
         la		$t0, IR_campo_imm   # $t0 <- &IR_campo_imm
         lw		$t0, 0($t0)		    # $t0 <- Valor de IR_campo_imm - Aqui ja temos o valor imediato
-        sll     $t0, $t0, 4         # [O CERTO EH <<2 MAS AQUI TEMOS QUE USAR <<4 POIS AQUI CADA INSTRUCAO DISTA 16 POSICOES DA PROXIMA E NAO 4 COMO NORMAL]
+        sll     $t0, $t0, 2         # [O CERTO EH <<2 POIS AQUI CADA INSTRUCAO DISTA 4 POSICOES DA PROXIMA]
 
         la      $t1, PC             # $t1 <- &PC
         lw      $t1, 0($t1)         # $t1 <- Valor de PC
@@ -418,18 +409,9 @@ execute_j:
     la		$t1, IR_campo_j     # $t1 <- &IR_campo_j
     lw		$t1, 0($t1)		    # $t1 <- Valor de IR_campo_j - Aqui ja temos o valor imediato
     
-    # Aqui o valor de PC ta como se deslocassemos 4 posicoes para a proxima instrucao
-    # Mas no nosso simulador temos que deslocar 16 posicoes.
-    subi	$t1, $t1, 0x100000  # imm = imm - 0x100000 (0x00400000 >> 2)
-    # Agora temos o numero de enderecos que precisamos ir pra frente em relacao ao default de PC
-    # Multiplicamos por 4
-    sll     $t1, $t1, 2
-    # Somamos isso ao padrao de PC
-    addiu   $t1, $t1, 0x100000
-    
     sll     $t1, $t1, 4         # imm << 4
     srl     $t1, $t1, 4         # imm >> 4
-    sll     $t1, $t1, 2         # imm << 2 (Aqui estamos multiplicando por 4 dnv pra obter 16 = 4x4)
+    sll     $t1, $t1, 2         # imm << 2
     or      $t2, $t1, $t0       # Append os 4-bit msb do PC+4 em imm
 
     la      $t0, PC             # $t0 <- &PC
