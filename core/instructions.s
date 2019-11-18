@@ -99,10 +99,11 @@ execute_addu:
 ##### FIM execute_addu #####
 
 execute_syscall:
-    addiu   $sp, $sp, -12
+    addiu   $sp, $sp, -16
     sw		$ra, 0($sp)
     sw		$s0, 4($sp)
     sw		$s1, 8($sp)
+    sw		$s2, 12($sp)
 
     li		$a0, 4		# $a0 = 4 indice do registrador = $a0
     jal     leia_registrador
@@ -110,12 +111,12 @@ execute_syscall:
 
     li		$a0, 5		# $a0 = 5 indice do registrador = $a1
     jal     leia_registrador
-    move 	$s1, $v0    # $s0 = $v0 (valor de $a1 virtual)
+    move 	$s1, $v0    # $s1 = $v0 (valor de $a1 virtual)
 
     li		$a0, 2		# $a0 = 2 indice do registrador = $v0
     jal     leia_registrador
 
-    # Restaura $a0 e $a1
+    # Restaura $a0, $a1 e $v0
     move 	$a0, $s0		# $a0 = $s0
     move 	$a1, $s1		# $a1 = $s1
 
@@ -126,7 +127,8 @@ execute_syscall:
     lw		$ra, 0($sp)
     lw		$s0, 4($sp)
     lw		$s1, 8($sp)
-    addiu   $sp, $sp, 12
+    lw		$s2, 12($sp)
+    addiu   $sp, $sp, 16
     jr      $ra
 ##### FIM execute_syscall #####
 
@@ -217,9 +219,21 @@ execute_jal:
     
     la		$t1, IR_campo_j     # $t1 <- &IR_campo_j
     lw		$t1, 0($t1)		    # $t1 <- Valor de IR_campo_j - Aqui ja temos o valor imediato
-    sll     $t1, $t1, 2         # imm << 2
-    or      $t2, $t1, $t0       # Append os 4-bit msb do PC+4 em imm
+    
+    # Aqui o valor de PC ta como se deslocassemos 4 posicoes para a proxima instrucao
+    # Mas no nosso simulador temos que deslocar 16 posicoes.
+    subi	$t1, $t1, 0x100000  # imm = imm - 0x100000 (0x00400000 >> 2)
+    # Agora temos o numero de enderecos que precisamos ir pra frente em relacao ao default de PC
+    # Multiplicamos por 4
+    sll     $t1, $t1, 2
+    # Somamos isso ao padrao de PC
+    addiu   $t1, $t1, 0x100000
 
+    sll     $t1, $t1, 4         # imm << 4
+    srl     $t1, $t1, 4         # imm >> 4
+    sll     $t1, $t1, 2         # imm << 2 (Aqui estamos multiplicando por 4 dnv pra obter 16 = 4x4)
+    or      $t2, $t1, $t0       # Append os 4-bit msb do PC+4 em imm
+    
     la      $t0, PC             # $t0 <- &PC
     sw      $t2, 0($t0)         # Valor de PC = $t2 = Endereco do jump
 
@@ -325,7 +339,7 @@ execute_bne:
     execute_bne_should_branch:
         la		$t0, IR_campo_imm   # $t0 <- &IR_campo_imm
         lw		$t0, 0($t0)		    # $t0 <- Valor de IR_campo_imm - Aqui ja temos o valor imediato
-        sll     $t0, $t0, 2
+        sll     $t0, $t0, 4         # [O CERTO EH <<2 MAS AQUI TEMOS QUE USAR <<4 POIS AQUI CADA INSTRUCAO DISTA 16 POSICOES DA PROXIMA E NAO 4 COMO NORMAL]
 
         la      $t1, PC             # $t1 <- &PC
         lw      $t1, 0($t1)         # $t1 <- Valor de PC
@@ -403,7 +417,19 @@ execute_j:
     
     la		$t1, IR_campo_j     # $t1 <- &IR_campo_j
     lw		$t1, 0($t1)		    # $t1 <- Valor de IR_campo_j - Aqui ja temos o valor imediato
-    sll     $t1, $t1, 2         # imm << 2
+    
+    # Aqui o valor de PC ta como se deslocassemos 4 posicoes para a proxima instrucao
+    # Mas no nosso simulador temos que deslocar 16 posicoes.
+    subi	$t1, $t1, 0x100000  # imm = imm - 0x100000 (0x00400000 >> 2)
+    # Agora temos o numero de enderecos que precisamos ir pra frente em relacao ao default de PC
+    # Multiplicamos por 4
+    sll     $t1, $t1, 2
+    # Somamos isso ao padrao de PC
+    addiu   $t1, $t1, 0x100000
+    
+    sll     $t1, $t1, 4         # imm << 4
+    srl     $t1, $t1, 4         # imm >> 4
+    sll     $t1, $t1, 2         # imm << 2 (Aqui estamos multiplicando por 4 dnv pra obter 16 = 4x4)
     or      $t2, $t1, $t0       # Append os 4-bit msb do PC+4 em imm
 
     la      $t0, PC             # $t0 <- &PC
