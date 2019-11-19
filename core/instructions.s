@@ -47,7 +47,7 @@ execute_add:
     lw		$s1, 0($s1)		    # $s1 <- Valor de IR_campo_rt - indice do registrador rt
     move 	$a0, $s1		    # $a0 = Valor de IR_campo_rt
     jal     leia_registrador
-    move 	$s1, $v0		    # $t0 = $v0 (Valor que se encontra no registrador que o IR_campo_rt nos indica)
+    move 	$s1, $v0		    # $s1 = $v0 (Valor que se encontra no registrador que o IR_campo_rt nos indica)
 
     add		$t2, $s0, $s1		# $t2 = $s0 + $s1
 
@@ -67,23 +67,24 @@ execute_add:
 ##### FIM execute_add #####
 
 execute_addu:
-    addiu   $sp, $sp, -4
+    addiu   $sp, $sp, -8
     sw		$ra, 0($sp)
+    sw      $s0, 4($sp)
 
-    # add rd, rs, rt
-    la		$t0, IR_campo_rs    # $t0 <- &IR_campo_rs
-    lw		$t0, 0($t0)		    # $t0 <- Valor de IR_campo_rs - indice do registrador rs
-    move 	$a0, $t0		    # $a0 = Valor de IR_campo_rs
+    # addu rd, rs, rt
+    la		$s0, IR_campo_rs    # $s0 <- &IR_campo_rs
+    lw		$s0, 0($s0)		    # $s0 <- Valor de IR_campo_rs - indice do registrador rs
+    move 	$a0, $s0		    # $a0 = Valor de IR_campo_rs
     jal     leia_registrador
-    move 	$t0, $v0		    # $t0 = $v0 (Valor que se encontra no registrador que o IR_campo_rs nos indica)
+    move 	$s0, $v0		    # $s0 = $v0 (Valor que se encontra no registrador que o IR_campo_rs nos indica)
 
-    la		$t1, IR_campo_rt    # $t0 <- &IR_campo_rt
-    lw		$t1, 0($t1)		    # $t0 <- Valor de IR_campo_rt - indice do registrador rt
+    la		$t1, IR_campo_rt    # $t1 <- &IR_campo_rt
+    lw		$t1, 0($t1)		    # $t1 <- Valor de IR_campo_rt - indice do registrador rt
     move 	$a0, $t1		    # $a0 = Valor de IR_campo_rt
     jal     leia_registrador
-    move 	$t1, $v0		    # $t0 = $v0 (Valor que se encontra no registrador que o IR_campo_rt nos indica)
+    move 	$t1, $v0		    # $t1 = $v0 (Valor que se encontra no registrador que o IR_campo_rt nos indica)
 
-    addu	$t2, $t0, $t1		# $t2 = $t0 + $t1
+    addu	$t2, $s0, $t1		# $t2 = $s0 + $t1
 
     # epilogo_operacao
     la		$t0, IR_campo_rd    # $t0 <- &IR_campo_rd
@@ -94,7 +95,8 @@ execute_addu:
     jal		escreve_registrador	# jump to escreve_registrador and save position to $ra
 
     lw		$ra, 0($sp)
-    addiu   $sp, $sp, 4
+    lw      $s0, 4($sp)
+    addiu   $sp, $sp, 8
     jr      $ra
 ##### FIM execute_addu #####
 
@@ -133,10 +135,11 @@ execute_syscall:
 ##### FIM execute_syscall #####
 
 execute_sw:
-    addiu   $sp, $sp, -12
+    addiu   $sp, $sp, -16
     sw		$ra, 0($sp)
     sw		$s0, 4($sp)
     sw		$s1, 8($sp)
+    sw		$s2, 12($sp)
 
     # sw rt, address  | 0x2b | rs | rt | offset |
     la		$s0, IR_campo_rs    # $s0 <- &IR_campo_rs
@@ -157,15 +160,30 @@ execute_sw:
     # Aplicamos o offset em rs (contem um endereco)
     addu    $s0, $s0, $t2       # Usamo so addu pois nao queremos overflow
 
+    move    $s2, $zero          # contador = 0
+
     # Agora salvamos em memoria o valor de rt no endereco rs+offset = $s0
-    move 	$a0, $s0		# $a0 = $s0 (Endereco de memoria que queremos escrever)
-    move 	$a1, $s1		# $a1 = $s1 (Valor a ser gravado na memoria)
-    jal     escreve_memoria
+    laco_store_word_sw:
+        li      $t0, 4
+        bge		$s2, $t0, fim_laco_store_word_sw	# if contador >= 4 then fim_laco_store_word_sw
+        
+        move 	$a0, $s0		# $a0 = $s0 (Endereco de memoria que queremos escrever)
+        move 	$a1, $s1		# $a1 = $s1 (Valor a ser gravado na memoria)
+        jal     escreve_memoria
+
+        srl     $s1, $s1, shift_1_byte      # word >> shift_1_byte
+        
+        addi	$s0, $s0, 1	        # Endereco da memoria+1
+        addi	$s2, $s2, 1	        # contador+1
+        j		laco_store_word_sw   # jump to laco_load_byte_lw
+    fim_laco_store_word_sw:
+    
 
     lw		$ra, 0($sp)
     lw		$s0, 4($sp)
     lw		$s1, 8($sp)
-    addiu   $sp, $sp, 12
+    lw		$s2, 12($sp)
+    addiu   $sp, $sp, 16
     jr      $ra
 ##### FIM execute_sw #####
 
@@ -261,9 +279,10 @@ execute_lw:
         li      $t0, 4
         bge		$s2, $t0, fim_load_byte_lw	# if contador >= 4 then fim_load_byte_lw
         
-        sll     $s1, $s1, 2         # word << 2
+        srl     $s1, $s1, shift_1_byte      # word >> shift_1_byte
         move 	$a0, $s0		    # $a0 = $s0 (Endereco de memoria que queremos ler)
         jal     leia_memoria
+        sll     $v0, $v0, shift_3_byte # Byte lido << shift_3_byte
         or      $s1, $s1, $v0       # Colocamos um byte na word
         addi	$s0, $s0, 1	        # Endereco da memoria+1
         addi	$s2, $s2, 1	        # contador+1
@@ -288,10 +307,12 @@ execute_lui:
     addiu   $sp, $sp, -4
     sw		$ra, 0($sp)
 
-    # lui rt, imm (Ex.: lui $12, 0xdeadf123 -> $12 = 0xdead0000 )
+    # lui rt, imm (Ex.: lui $12, 0xdeadf123 -> $12 = 0xf1230000 )
     la		$t0, IR_campo_imm   # $t0 <- &IR_campo_imm
     lw		$t0, 0($t0)		    # $t0 <- Valor de IR_campo_imm - Aqui ja temos o valor imediato
-    andi    $t0, $t0, 0xFFFF0000
+    andi    $t0, $t0, 0x0000FFFF
+    sll     $t0, $t0, shift_2_byte
+
 
     la		$t1, IR_campo_rt    # $t1 <- &IR_campo_rt
     lw		$t1, 0($t1)		    # $t1 <- Valor de IR_campo_rt - indice do registrador rt
@@ -386,7 +407,7 @@ execute_jr:
     move 	$t0, $v0		    # $t0 = $v0 (Valor que se encontra no registrador que o IR_campo_rs nos indica)
 
     la      $t1, PC             # $t1 <- &PC
-    lw      $t0, 0($t1)         # $t0 (Endereco no registrador rs) -> PC
+    sw      $t0, 0($t1)         # $t0 (Endereco no registrador rs) -> PC
 
     lw		$ra, 0($sp)
     addiu   $sp, $sp, 4

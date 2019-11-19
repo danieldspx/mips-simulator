@@ -45,3 +45,9 @@ memoria_pilha:      .space 65536    # segmento de memoria da pilha
 .eqv PC_DEFAULT            0x00400000   # valor padrão do PC (program counter, contador de programa)
 .eqv SP_DEFAULT            0x7FFFEFFC   # valor padrão do SP (stack pointer, apontador para a pilha)
 .eqv GP_DEFAULT            0x10008000   # valor padrão do GP (global pointer, apontador global)
+
+#Uteis
+.eqv    shift_1_byte    8
+.eqv    shift_2_byte    16
+.eqv    shift_3_byte    24
+.eqv    shift_4_byte    32

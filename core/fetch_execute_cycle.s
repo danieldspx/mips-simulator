@@ -1,6 +1,6 @@
 .data:
 .align 2
-error_finding_op: .asciiz "Erro: OP CODE nao mapeado "
+error_finding_op: .asciiz "Erro: OP CODE nao mapeado\n"
 .text
 .eqv    mask_op_code    0xFC000000 # -> 31 - 26 (6)      OP
 .eqv    mask_rs         0x03E00000 # -> 25 - 21 (5)     RS
@@ -50,10 +50,11 @@ fetch_instruction:
         li		$t0, 4		# $t0 = 4
         bge		$s2, $t0, fim_laco_fetch	# if $s2(contador) >= 4 then fim_laco_fetch
         
-        sll     $s1, $s1, 8     # Desloca dois bits para a esquerda para encaixar o proximo byte
+        srl     $s1, $s1, shift_1_byte      # Desloca dois bits para a esquerda para encaixar o proximo byte
         move 	$a0, $s0		# $a0 = Endereco da instrucao
         jal     leia_memoria
-        or      $s1, $s1, $v0   # Encaixamos o byte mais a direita da palavra sendo montada
+        sll     $v0, $v0, shift_3_byte
+        or      $s1, $s1, $v0   # Encaixamos o byte mais a esquerda da palavra sendo montada
         addi	$s0, $s0, 1		# $s0 = Endereco armazenado em PC + 1
         addi	$s2, $s2, 1     # contador++
         
@@ -232,12 +233,12 @@ execute_instruction:
     move    $a0, $t0        # $a0 = $t0 (Endereço da mensgem de erro)
     jal     imprime_string  # imprime string
     
-    # la      $t0, IR
-    # la		$a0, buffer_general
-    # lw		$a1, 0($t0)		        # $a1 <- OP CODE
-    # jal		convert_hex_2_string    # Converte Hex to String
-    # la		$a0, buffer_general
-    # jal     imprime_string  # imprime string
+    la      $t0, IR
+    la		$a0, buffer_general
+    lw		$a1, 0($t0)		        # $a1 <- OP CODE
+    jal		convert_hex_2_string    # Converte Hex to String
+    la		$a0, buffer_general
+    jal     imprime_string  # imprime string
 
     j       fim_execute_instruction
 
@@ -301,12 +302,12 @@ execute_instruction:
 
     fim_execute_instruction:
 
-    # la      $t0, IR
-    # la		$a0, buffer_general
-    # lw		$a1, 0($t0)		        # $a1 <- OP CODE
-    # jal		convert_hex_2_string    # Converte Hex to String
-    # la		$a0, buffer_general
-    # jal     imprime_string  # imprime string
+    la      $t0, IR
+    la		$a0, buffer_general
+    lw		$a1, 0($t0)		        # $a1 <- OP CODE
+    jal		convert_hex_2_string    # Converte Hex to String
+    la		$a0, buffer_general
+    jal     imprime_string  # imprime string
 
     lw		$ra, 0($sp) 
     addiu   $sp, $sp, 4
