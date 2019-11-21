@@ -117,13 +117,31 @@ execute_syscall:
 
     li		$a0, 2		# $a0 = 2 indice do registrador = $v0
     jal     leia_registrador
+    move    $s2, $v0    # $s2 = $v0 (valor de $v0 virtual)
 
+    li      $t0, 1
+    beq		$v0, $t0, exsys_eh_print_int	# if $v0 == 1 then exsys_eh_print_int
+
+    li      $t0, 4
+    beq		$v0, $t0, exsys_eh_print_string	# if $v0 == 1 then exsys_eh_print_int
+
+    j       exsys_fim
+    
+    exsys_eh_print_int:
+        ## Por enquanto nao faz nada
+        j       exsys_fim
+    exsys_eh_print_string:
+        move    $a0, $s0    # $a0 = Endereco real
+        jal     convert_real_address_2_virtual
+        # Aqui $v0 eh o endereco virtual
+        move    $s0, $v0    # $a0 = address of null-terminated string to print (virtual)
+        j       exsys_fim
+    exsys_fim:
     # Restaura $a0, $a1 e $v0
     move 	$a0, $s0		# $a0 = $s0
     move 	$a1, $s1		# $a1 = $s1
+    move 	$v0, $s2		# $a1 = $s1
 
-    # Aqui o valor de $v0 ja eh o valor que estava no nosso $v0 virtual
-    # Assim, basta fazer a chamada syscall
     syscall
 
     lw		$ra, 0($sp)

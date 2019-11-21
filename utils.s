@@ -283,3 +283,65 @@ convert_hex_2_string:
     addiu   $sp, $sp, 12
     jr		$ra
 ##### FIM convert_hex_2_string #####
+
+
+##############
+# Argumentos:
+# $a0 = Endereço real. Ex.: 0x10010080 (memoria de dados)
+# Retorno:
+# $v0 = Zero em caso de erro ou Endereço virtual correspondente ao real. Ex.: 0x1001033c
+convert_real_address_2_virtual:
+    addiu   $sp, $sp, -8
+    sw      $ra, 0($sp)
+    sw      $s0, 4($sp)
+
+    move    $s0, $a0 #Guardamos esse endereço pois utilizaremos
+
+    move    $a0, $s0
+    li      $a1, ei_memoria_dados
+    li      $a2, ef_memoria_dados
+    jal     pertence_segmento_memoria
+    li      $t0, 1
+    beq     $v0, $t0, cra2v_eh_memoria_dados # if $v0 == 1 then cra2v_eh_memoria_dados
+
+    move    $a0, $s0
+    li      $a1, ei_memoria_instrucoes
+    li      $a2, ef_memoria_instrucoes
+    jal     pertence_segmento_memoria
+    li      $t0, 1
+    beq     $v0, $t0, cra2v_eh_memoria_instrucoes # if $v0 == 1 then cra2v_eh_memoria_instrucoes
+
+    move    $a0, $s0
+    li      $a1, ei_memoria_pilha
+    li      $a2, ef_memoria_pilha
+    jal     pertence_segmento_memoria
+    li      $t0, 1
+    beq     $v0, $t0, cra2v_eh_memoria_pilha # if $v0 == 1 then cra2v_eh_memoria_pilha
+
+    j       cra2v_erro # Se chegar aqui quer dizer que nao esta em nenhum dos intervalos citados, isso significa que temos algum erro
+
+    cra2v_eh_memoria_dados:
+        subi	$t0, $s0, ei_memoria_dados  # $t0 = Endereco_real - Endereco_real_base (Isso nos dara o deslocamento)
+        la      $t1, memoria_dados          # $t1 = &memoria_dados
+        addu    $v0, $t1, $t0               # $v0 = &memoria_dados + deslocamento
+        j		cra2v_fim	                # jump to cra2v_fim
+    cra2v_eh_memoria_instrucoes:
+        subi	$t0, $s0, ei_memoria_instrucoes  # $t0 = Endereco_real - Endereco_real_base (Isso nos dara o deslocamento)
+        la      $t1, memoria_instrucoes          # $t1 = &memoria_instrucoes
+        addu    $v0, $t1, $t0                    # $v0 = &memoria_instrucoes + deslocamento
+        j		cra2v_fim	                     # jump to cra2v_fim
+    cra2v_eh_memoria_pilha:
+        subi	$t0, $s0, ei_memoria_pilha  # $t0 = Endereco_real - Endereco_real_base (Isso nos dara o deslocamento)
+        la      $t1, memoria_pilha       # $t1 = &memoria_pilha
+        addu    $v0, $t1, $t0            # $v0 = &memoria_pilha + deslocamento
+        j		cra2v_fim	             # jump to cra2v_fim
+    cra2v_erro:
+        li		$v0, 0		# $v0 = 0
+        j		cra2v_fim	# jump to cra2v_fim
+    cra2v_fim:
+
+    lw      $ra, 0($sp)
+    lw      $s0, 4($sp)
+    addiu   $sp, $sp, 8
+    jr      $ra
+##### FIM convert_real_address_2_virtual #####
