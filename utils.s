@@ -284,6 +284,63 @@ convert_hex_2_string:
     jr		$ra
 ##### FIM convert_hex_2_string #####
 
+##############
+# Argumentos:
+# $a0 = &buffer - Deve possuir pelo menos 12 posicoes para a string
+# $a1 = numDec
+# Retorno:
+# $v0 = 1 se a conversao foi realizada com sucesso e 0 caso houver erro
+convert_dec_2_string:
+    addiu   $sp, $sp, -16
+    sw      $ra, 0($sp)
+    sw      $s0, 4($sp)
+    sw      $s1, 8($sp)		# Num a shiftar >>
+    sw      $s2, 12($sp)	# Count of digits
+    
+    move 	$s1, $a1		# $s1 = $a1
+    move 	$s2, $zero		# $s2 = $zero
+    move    $s0, $a0        # $s0 <- Cursor de &buffer
+
+    move    $t0, $s1
+    d2s_count_size:
+        beqz    $t0, d2s_count_size_end
+        addi    $s2, $s2, 1
+        li      $t1, 10
+        div		$t0, $t0, $t1	    # $t0 / 10
+    j       d2s_count_size
+    d2s_count_size_end:
+    
+    li      $t2, '\0'
+    add     $t0, $s0, $s2
+    sb      $t2, 0($t0)     # buffer[0 + deslocamento]
+    addi    $s2, $s2, -1
+
+    inicio_laco_convert_dec_2_string:
+        li     $t2, -1
+        beq    $s2, $t2, fim_laco_convert_dec_2_string
+
+        li      $t0, 10
+        div		$s1, $s1, $t0	    # $s1 / $t10
+        mfhi	$t1					# $t1 = $s1 mod 10 
+        
+
+        li		$t2, '0'		# $t2 = '0'
+        add		$t2, $t2, $t1   # $t2 = '0' + num_isolado(atraves da divisao por 10)
+
+        add     $t0, $s0, $s2
+        sb      $t2, 0($t0)     # buffer[0 + deslocamento]
+        addi    $s2, $s2, -1
+        j		inicio_laco_convert_dec_2_string # jump to inicio_laco_convert_dec_2_string
+    fim_laco_convert_dec_2_string:
+
+    lw      $ra, 0($sp)
+    lw      $s0, 4($sp)
+    lw      $s1, 8($sp)
+    lw      $s2, 12($sp)
+    addiu   $sp, $sp, 16
+    jr		$ra
+##### FIM convert_dec_2_string #####
+
 
 ##############
 # Argumentos:
@@ -295,7 +352,7 @@ convert_real_address_2_virtual:
     sw      $ra, 0($sp)
     sw      $s0, 4($sp)
 
-    move    $s0, $a0 #Guardamos esse endereço pois utilizaremos
+    move    $s0, $a0 # Guardamos esse endereço pois utilizaremos
 
     move    $a0, $s0
     li      $a1, ei_memoria_dados

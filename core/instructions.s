@@ -123,18 +123,25 @@ execute_syscall:
     beq		$v0, $t0, exsys_eh_print_int	# if $v0 == 1 then exsys_eh_print_int
 
     li      $t0, 4
-    beq		$v0, $t0, exsys_eh_print_string	# if $v0 == 1 then exsys_eh_print_int
+    beq		$v0, $t0, exsys_eh_print_string	# if $v0 == 4 then exsys_eh_print_string
 
     j       exsys_fim
     
     exsys_eh_print_int:
         ## Por enquanto nao faz nada
+        la		$a0, buffer_general
+        move    $a1, $s0        # $a1 = Integer to print
+        jal     convert_dec_2_string
+        la		$a0, buffer_general
+        jal     imprime_string  # imprime string no terminal
         j       exsys_fim
     exsys_eh_print_string:
         move    $a0, $s0    # $a0 = Endereco real
         jal     convert_real_address_2_virtual
         # Aqui $v0 eh o endereco virtual
-        move    $s0, $v0    # $a0 = address of null-terminated string to print (virtual)
+        move    $s0, $v0    # $s0 = address of null-terminated string to print (virtual)
+        move	$a0, $v0
+        jal     imprime_string  # imprime string no terminal
         j       exsys_fim
     exsys_fim:
     # Restaura $a0, $a1 e $v0
