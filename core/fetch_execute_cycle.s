@@ -302,12 +302,12 @@ execute_instruction:
 
     fim_execute_instruction:
 
-    la      $t0, IR
-    la		$a0, buffer_general
-    lw		$a1, 0($t0)		        # $a1 <- OP CODE
-    jal		convert_hex_2_string    # Converte Hex to String
-    la		$a0, buffer_general
-    jal     imprime_string  # imprime string
+    # la      $t0, IR
+    # la		$a0, buffer_general
+    # lw		$a1, 0($t0)		        # $a1 <- OP CODE
+    # jal		convert_hex_2_string    # Converte Hex to String
+    # la		$a0, buffer_general
+    # jal     imprime_string  # imprime string
 
     lw		$ra, 0($sp) 
     addiu   $sp, $sp, 4
