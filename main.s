@@ -74,7 +74,7 @@ identifica_comando_e_chama_procedimento:
         addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[1] + 1
         lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[2]
         li      $t0, ' '
-        bne		$t1, $t0, fim_identifica	# if vetorDeCaracteres[1] != ' ' then fim_identifica
+        bne		$t1, $t0, comando_nao_encontrado	# if vetorDeCaracteres[1] != ' ' then comando_nao_encontrado
 
         move    $a0, $s0        # $a0 = $s0
         jal     executa_comando_lt
@@ -83,7 +83,7 @@ identifica_comando_e_chama_procedimento:
         addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[1] + 1
         lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[2]
         li      $t0, ' '
-        bne		$t1, $t0, fim_identifica	# if vetorDeCaracteres[2] != ' ' then fim_identifica
+        bne		$t1, $t0, comando_nao_encontrado	# if vetorDeCaracteres[2] != ' ' then comando_nao_encontrado
 
         move    $a0, $s0        # $a0 = $s0
         jal     executa_comando_ld
@@ -92,7 +92,7 @@ identifica_comando_e_chama_procedimento:
         addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[0] + 1
         lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[1]
         li      $t0, ' '
-        bne		$t1, $t0, fim_identifica	# if vetorDeCaracteres[1] != ' ' then fim_identifica
+        bne		$t1, $t0, comando_nao_encontrado	# if vetorDeCaracteres[1] != ' ' then comando_nao_encontrado
         
         move    $a0, $s0        # $a0 = $s0 (&vetorDeCaracteres[0])
         jal     executa_comando_r
@@ -101,14 +101,14 @@ identifica_comando_e_chama_procedimento:
         addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[0] + 1
         lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[1]
         li      $t0, '\0'
-        bne		$t1, $t0, fim_identifica	# if vetorDeCaracteres[1] != ' ' then fim_identifica
+        bne		$t1, $t0, comando_nao_encontrado	# if vetorDeCaracteres[1] != '\0' then comando_nao_encontrado
         jal		executa_comando_d				# jump to executa_comando_d and save position to $ra
         j		fim_identifica
     comando_eh_m:
         addi	$s1, $s1, 1		# $s1 = &vetorDeCaracteres[0] + 1
         lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[1]
         li      $t0, ' '
-        bne		$t1, $t0, fim_identifica	# if vetorDeCaracteres[1] != ' ' then fim_identifica
+        bne		$t1, $t0, comando_nao_encontrado	# if vetorDeCaracteres[1] != ' ' then comando_nao_encontrado
 
         j		fim_identifica
 
