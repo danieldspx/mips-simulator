@@ -109,6 +109,8 @@ identifica_comando_e_chama_procedimento:
         lb		$t1, 0($s1)		# $t1 = vetorDeCaracteres[1]
         li      $t0, ' '
         bne		$t1, $t0, comando_nao_encontrado	# if vetorDeCaracteres[1] != ' ' then comando_nao_encontrado
+        
+        jal		executa_comando_m
 
         j		fim_identifica
 
@@ -153,5 +155,6 @@ initialize_variables:
 .include "comands/executa_lt.s"
 .include "comands/executa_ld.s"
 .include "comands/executa_d.s"
+.include "comands/executa_m.s"
 .include "comands/executa_r.s"
 .include "core/fetch_execute_cycle.s"
