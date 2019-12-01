@@ -221,7 +221,7 @@ extend_signal:
 
 ##############
 # Argumentos:
-# $a0 = &buffer - Deve possuir pelo menos 12 posicoes para a string
+# $a0 = &buffer - Deve possuir pelo menos 11 posicoes para a string
 # $a1 = numHex
 # Retorno:
 # $v0 = 1 se a conversao foi realizada com sucesso e 0 caso houver erro
@@ -270,10 +270,6 @@ convert_hex_2_string:
         srl     $t0, $t0, 4 	# Byte_mask
         j		inicio_laco_convert_hex_2_string # jump to inicio_laco_convert_hex_2_string
     fim_laco_convert_hex_2_string:
-    li		$t2, '\n'		# $t2 = '\n'
-    sb      $t2, 0($s0)      # buffer[end-1] = '\n'
-
-    add     $s0, $s0, 1
     li		$t2, '\0'		# $t2 = '\0'
     sb      $t2, 0($s0)      # buffer[end] = '\0'
 
@@ -301,14 +297,27 @@ convert_dec_2_string:
     move 	$s2, $zero		# $s2 = $zero
     move    $s0, $a0        # $s0 <- Cursor de &buffer
 
+    beqz    $s1, d2s_num_eh_zero # if $s1 == 0 then d2s_num_eh_zero
+    j       d2s_num_nao_eh_zero
+
+    d2s_num_eh_zero:
+        li      $t2, '0'
+        sb      $t2, 0($s0)
+        li      $t2, '\0'
+        sb      $t2, 1($s0)
+        j		fim_laco_convert_dec_2_string   # jump to fim_laco_convert_dec_2_string
+        
+    d2s_num_nao_eh_zero:
     move    $t0, $s1
     d2s_count_size:
         beqz    $t0, d2s_count_size_end
         addi    $s2, $s2, 1
         li      $t1, 10
         div		$t0, $t0, $t1	    # $t0 / 10
-    j       d2s_count_size
+        j       d2s_count_size
     d2s_count_size_end:
+
+    
     
     li      $t2, '\0'
     add     $t0, $s0, $s2
@@ -346,7 +355,7 @@ convert_dec_2_string:
 # Argumentos:
 # $a0 = Endereço real. Ex.: 0x10010080 (memoria de dados)
 # Retorno:
-# $v0 = Zero em caso de erro ou Endereço virtual correspondente ao real. Ex.: 0x1001033c
+# $v0 = Endereço virtual correspondente ao real. Ex.: 0x1001033c OU Zero em caso de erro
 convert_real_address_2_virtual:
     addiu   $sp, $sp, -8
     sw      $ra, 0($sp)
@@ -402,3 +411,45 @@ convert_real_address_2_virtual:
     addiu   $sp, $sp, 8
     jr      $ra
 ##### FIM convert_real_address_2_virtual #####
+
+##############
+# Este procedimento apenas imprime ' -> '
+print_label_arrow:
+    addiu   $sp, $sp, -4
+    sw      $ra, 0($sp)
+
+    la		$a0, label_arrow
+    jal     imprime_string
+
+    lw      $ra, 0($sp)
+    addiu   $sp, $sp, 4
+    jr      $ra
+##### FIM print_label_arrow #####
+
+##############
+# Este procedimento apenas imprime '\n'
+print_end_of_line:
+    addiu   $sp, $sp, -4
+    sw      $ra, 0($sp)
+
+    la		$a0, end_of_line
+    jal     imprime_string
+
+    lw      $ra, 0($sp)
+    addiu   $sp, $sp, 4
+    jr      $ra
+##### FIM print_end_of_line #####
+
+##############
+# Este procedimento apenas imprime '-----------\n'
+print_line_separator:
+    addiu   $sp, $sp, -4
+    sw      $ra, 0($sp)
+
+    la		$a0, line_separator
+    jal     imprime_string
+
+    lw      $ra, 0($sp)
+    addiu   $sp, $sp, 4
+    jr      $ra
+##### FIM print_line_separator #####

@@ -31,6 +31,10 @@ memoria_instrucoes: .space 65536    # segmento de memória para instruções (.t
 memoria_dados:      .space 65536    # segmento de memória para os dados (.data)
 memoria_pilha:      .space 65536    # segmento de memoria da pilha
 
+end_of_line: .asciiz "\n"
+label_arrow: .asciiz " -> "
+line_separator: .asciiz "--------------------\n"
+
 .text
 # definicoes dos endereços e valores padrão do simulador
 # endereço inicial e final dos segmentos de memória para instruções, dados e a pilha
