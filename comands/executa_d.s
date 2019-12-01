@@ -1,5 +1,6 @@
 .data
 entry_msg_d: .asciiz "\nRegistradores:\n"
+dollar_sign: .asciiz "$"
 
 .text
 ##############
@@ -20,6 +21,18 @@ executa_comando_d:
     excd_inicio_laco:
         li		$t1, 32		# $t1 = 32
         bge		$s0, $t1, excd_fim_laco	# if contadot >= 32 then excd_fim_laco
+
+        la		$a0, dollar_sign
+        jal     imprime_string
+
+        # Imprime o numero do registrador
+        la		$a0, buffer_general
+        move 	$a1, $s0
+        jal		convert_dec_2_string
+        la		$a0, buffer_general
+        jal     imprime_string
+
+        jal     print_label_arrow
         
         move 	$a0, $s0		        # $a0 = Indice do registrador
         jal     leia_registrador
@@ -28,9 +41,14 @@ executa_comando_d:
         jal		convert_hex_2_string    # Converte Hex to String
         la		$a0, buffer_general
         jal     imprime_string          # imprime string
-        addi	$s0, $s0, 1			# $s0 = $s0 + 1
+        addi	$s0, $s0, 1			    # $s0 = $s0 + 1
+
+        jal     print_end_of_line
+
         j		excd_inicio_laco
-    excd_fim_laco: 
+    excd_fim_laco:
+
+    jal     print_line_separator
 
     lw		$ra, 0($sp) 
     lw		$s0, 4($sp)   
