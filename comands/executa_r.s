@@ -15,7 +15,6 @@ executa_comando_r:
     jal     pegar_argumento
     move 	$s0, $v0		       # $s0 <- Endereco para a primeira posicao onde comeca o argumento
     beqz    $v1, fim_comando_r     # Se $v1 == 0 Significa que nao foi possivel pegar o argumento 
-    #TODO: Adicionar mensagem de erro avisando que nao foi possivel pegar o argumento
 
     move 	$a0, $s0		       # $a0 <- Endereco para a primeira posicao onde comeca o argumento
     la		$t0, 12($sp)		   # $t0 <- Endereco de 8($sp)
@@ -27,7 +26,6 @@ executa_comando_r:
     lw		$t0, 12($sp)		   # $t0 <- hasConverted
     
     beqz    $t0, fim_comando_r     # Se $t0 == 0 entao fim_comando_r (houve erro na conversao)
-    #TODO: Adicionar mensagem de erro de conversao 
 
     inicio_laco_r:
         bge		$s1, $s0, fim_laco_r	# if contador >= Numero de instrucoes a executar $ then fim_laco_r
